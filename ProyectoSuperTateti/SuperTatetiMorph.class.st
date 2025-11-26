@@ -18,35 +18,36 @@ SuperTatetiMorph class >> open [
 
 { #category : 'updating' }
 SuperTatetiMorph >> actualizarBotonDeTablerito: indiceTablerito casilla: indiceCasilla [
-    | btn valor tam origen |
+    | btn valor texto |
+
     btn := (botones at: indiceTablerito) at: indiceCasilla.
 
-    tam := btn valueOfProperty: #cellSize ifAbsent: [ btn bounds width ].
-    origen := btn bounds origin.
-
+    "Valor que tiene esa casilla en el modelo (#x, #o o nil)"
     valor := juego valorEnTablerito: indiceTablerito casilla: indiceCasilla.
-    btn label: (valor
-        ifNil: [ ' ' ]
-        ifNotNil: [ valor asString asUppercase ]).
 
-    btn bounds: (origen extent: tam @ tam).
+    "Limpio cualquier texto viejo que tenga el botón"
+    btn submorphs do: [:m | m delete].
+
+    "Fondo blanco siempre"
     btn color: Color white.
+
+    "Si hay X u O, creo un StringMorph y lo centro dentro del botón"
+    valor ifNotNil: [
+        texto := StringMorph contents: (valor asString asUppercase).
+        texto color: Color black.
+        btn addMorph: texto.
+        texto center: btn center ].
 
 ]
 
 { #category : 'updating' }
 SuperTatetiMorph >> actualizarTituloVentana [
     | titulo |
-    titulo := 'Super Tateti'.
-
-    juego ganador
+    titulo := juego ganador
         ifNil: [
-            titulo := titulo , ' - turno: ',
-                juego jugadorActual asString asUppercase ]
-        ifNotNil: [
-            titulo := titulo , ' - GANADOR: ',
-                juego ganador asString asUppercase ].
-
+            'Super Tateti - turno: ', juego jugadorActual asString asUppercase ]
+        ifNotNil: [:g |
+            'Super Tateti - GANADOR: ', g asString asUppercase ].
     window setLabel: titulo.
 
 ]
@@ -56,7 +57,6 @@ SuperTatetiMorph >> actualizarVista [
     1 to: 9 do: [:t |
         1 to: 9 do: [:c |
             self actualizarBotonDeTablerito: t casilla: c ] ].
-
     self actualizarTituloVentana.
 
 ]
@@ -81,6 +81,8 @@ SuperTatetiMorph >> cerrarVentana [
 
 { #category : 'events' }
 SuperTatetiMorph >> clicEnTablerito: indiceTablerito casilla: indiceCasilla [
+    Transcript show: 'Click en ', indiceTablerito printString, '-', indiceCasilla printString; cr.
+
     [ juego jugarEnTablerito: indiceTablerito casilla: indiceCasilla ]
         on: Error
         do: [:ex | UIManager default inform: ex messageText ].
@@ -124,14 +126,14 @@ SuperTatetiMorph >> crearTableritoEn: panelPrincipal indice: indiceTablerito [
 
 { #category : 'building' }
 SuperTatetiMorph >> crearTablero [
-    | mainPanel topPanel boardContainer boardPanel
-      botonNew botonExit filas columnas
-      totalWidth cellSize boardWidth boardHeight
-      gap tIndex cIndex btn origenX x y extraX extraY |
+    | mainPanel boardPanel bottomPanel
+      botonNew botonExit filas columnas cellSize
+      filaMorph btn tIndex cIndex gap gapMorph rowGap |
 
     filas := 9.
     columnas := 9.
-    gap := 4.          "espacio entre los tableritos 3x3"
+    cellSize := 30.   "tamaño de cada casilla"
+    gap := 4.         "separación entre tableritos 3x3"
 
     "===== Panel principal (columna) ====="
     mainPanel := Morph new.
@@ -142,18 +144,79 @@ SuperTatetiMorph >> crearTablero [
               cellInset: 10.
     mainPanel color: Color veryLightGray.
 
-    "===== Barra con Exit / New ====="
-    topPanel := Morph new.
-    topPanel layoutPolicy: TableLayout new.
-    topPanel listDirection: #leftToRight.
-    topPanel hResizing: #shrinkWrap;
-             vResizing: #shrinkWrap;
-             cellInset: 0.
-    topPanel color: Color lightGray.
+    "===== Panel del tablero 9x9 ====="
+    boardPanel := Morph new.
+    boardPanel layoutPolicy: TableLayout new.
+    boardPanel listDirection: #topToBottom.
+    boardPanel hResizing: #shrinkWrap;
+               vResizing: #shrinkWrap;
+               cellInset: 0.
+    boardPanel color: Color veryLightGray.
+
+    "inicializamos la ivar botones"
+    botones := Array new: 9.
+    1 to: 9 do: [:t | botones at: t put: (Array new: 9) ].
+
+    1 to: filas do: [:row |
+        filaMorph := Morph new.
+        filaMorph layoutPolicy: TableLayout new.
+        filaMorph listDirection: #leftToRight.
+        filaMorph hResizing: #shrinkWrap;
+                  vResizing: #shrinkWrap;
+                  cellInset: 0.
+
+        1 to: columnas do: [:col |
+            "tablerito (1..9) y casilla (1..9)"
+            tIndex := ((row - 1) // 3) * 3 + ((col - 1) // 3) + 1.
+            cIndex := ((row - 1) \\ 3) * 3 + ((col - 1) \\ 3) + 1.
+
+            btn := SimpleButtonMorph new.
+            btn extent: cellSize @ cellSize.
+            btn layoutPolicy: nil.
+            btn hResizing: #rigid;
+                vResizing: #rigid.
+            btn color: Color white.
+            btn borderWidth: 1.
+            btn borderColor: Color black.
+
+            btn target: self.
+            btn actionSelector: #clicEnTablerito:casilla:.
+            btn arguments: { tIndex. cIndex }.
+
+            (botones at: tIndex) at: cIndex put: btn.
+            filaMorph addMorph: btn.
+
+            "después de las columnas 3 y 6, agregamos una columna de espacio"
+            (#(3 6) includes: col) ifTrue: [
+                gapMorph := Morph new.
+                gapMorph extent: gap @ cellSize.
+                gapMorph color: boardPanel color.
+                gapMorph borderWidth: 0.
+                filaMorph addMorph: gapMorph ] ].
+
+        boardPanel addMorph: filaMorph.
+
+        "después de las filas 3 y 6, agregamos una fila de espacio"
+        (#(3 6) includes: row) ifTrue: [
+            rowGap := Morph new.
+            rowGap layoutPolicy: nil.
+            rowGap extent: filaMorph fullBounds width @ gap.
+            rowGap color: boardPanel color.
+            rowGap borderWidth: 0.
+            boardPanel addMorph: rowGap ] ].
+
+    "===== Barra inferior con Exit / New ====="
+    bottomPanel := Morph new.
+    bottomPanel layoutPolicy: TableLayout new.
+    bottomPanel listDirection: #leftToRight.
+    bottomPanel hResizing: #shrinkWrap;
+                 vResizing: #shrinkWrap;
+                 cellInset: 0.
+    bottomPanel color: Color lightGray.
 
     botonExit := SimpleButtonMorph new.
     botonExit label: 'Exit'.
-    botonExit extent: 99@40.
+    botonExit extent: 100@40.
     botonExit color: Color lightGray.
     botonExit borderWidth: 1.
     botonExit borderColor: Color black.
@@ -162,81 +225,19 @@ SuperTatetiMorph >> crearTablero [
 
     botonNew := SimpleButtonMorph new.
     botonNew label: 'New'.
-    botonNew extent: 99@40.
+    botonNew extent: 100@40.
     botonNew color: Color lightGray.
     botonNew borderWidth: 1.
     botonNew borderColor: Color black.
     botonNew target: self.
     botonNew actionSelector: #reiniciarJuego.
 
-    topPanel addMorph: botonExit.
-    topPanel addMorph: botonNew.
+    bottomPanel addMorph: botonExit.
+    bottomPanel addMorph: botonNew.
 
-    "ancho total disponible (Exit + New)"
-    totalWidth := botonNew width + botonExit width.
-
-    "tamaño fijo de cada casilla (podés ajustarlo)"
-    cellSize := 20.
-
-    "tamaño del tablero teniendo en cuenta los gaps"
-    boardWidth := (cellSize * columnas) + (2 * gap).   "2 cortes verticales"
-    boardHeight := (cellSize * filas) + (2 * gap).     "2 cortes horizontales"
-
-    "centrar el tablero bajo la barra"
-    origenX := (totalWidth - boardWidth) // 2.
-
-    "===== Contenedor del tablero ====="
-    boardContainer := Morph new.
-    boardContainer layoutPolicy: nil.
-    boardContainer color: Color veryLightGray.
-
-    boardPanel := Morph new.
-    boardPanel layoutPolicy: nil.
-    boardPanel color: Color veryLightGray.
-    boardPanel bounds: (0@0 extent: totalWidth @ boardHeight).
-
-    botones := (1 to: 9) collect: [:i | Array new: 9 ].
-
-    "===== Dibujar las 81 casillas con gaps entre 3x3 ====="
-    0 to: filas - 1 do: [:rowIndex |
-        0 to: columnas - 1 do: [:colIndex |
-
-            extraX := (colIndex // 3) * gap.
-            extraY := (rowIndex // 3) * gap.
-
-            x := origenX + (colIndex * cellSize) + extraX.
-            y := (rowIndex * cellSize) + extraY.
-
-            "tablerito y casilla (1..9)"
-            tIndex := (rowIndex // 3) * 3 + (colIndex // 3) + 1.
-            cIndex := (rowIndex \\ 3) * 3 + (colIndex \\ 3) + 1.
-
-            btn := SimpleButtonMorph new.
-            btn bounds: ((x @ y) extent: cellSize @ cellSize).
-            btn label: ' '.
-            btn layoutPolicy: nil.
-            btn hResizing: #rigid.
-            btn vResizing: #rigid.
-            btn color: Color white.
-            btn borderWidth: 1.
-            btn borderColor: Color black.
-
-            "guardar tamaño para que no cambie al poner X/O"
-            btn setProperty: #cellSize toValue: cellSize.
-
-            btn target: self.
-            btn actionSelector: #clicEnTablerito:casilla:.
-            btn arguments: { tIndex. cIndex }.
-
-            (botones at: tIndex) at: cIndex put: btn.
-            boardPanel addMorph: btn ] ].
-
-    boardContainer bounds: boardPanel bounds.
-    boardContainer addMorph: boardPanel.
-
-    "===== Agregar tablero + barra al panel principal ====="
-    mainPanel addMorph: topPanel.
-    mainPanel addMorph: boardContainer.
+    "===== Armar layout general ====="
+    mainPanel addMorph: boardPanel.
+    mainPanel addMorph: bottomPanel.
 
     window addMorph: mainPanel frame: (0@0 corner: 1@1).
 

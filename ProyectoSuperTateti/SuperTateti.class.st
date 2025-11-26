@@ -13,17 +13,19 @@ Class {
 }
 
 { #category : 'game_logic' }
-SuperTateti >> actualizarEstadoDeTablerito: indice [
-    | tablero chicoGanador |
-    tablero := tableritos at: indice.
-    chicoGanador := self ganadorEnArregloDe9: tablero.
+SuperTateti >> actualizarEstadoDeTablerito: indiceTablerito [
+    | casillas ganadorTablerito |
+    
+    casillas := tableritos at: indiceTablerito.
+    ganadorTablerito := self ganadorEnArregloDe9: casillas.
 
-    chicoGanador ifNotNil: [
-        estadoTableritos at: indice put: chicoGanador.
+    ganadorTablerito ifNotNil: [
+        estadoTableritos at: indiceTablerito put: ganadorTablerito.
         ^ self ].
 
-    (self arregloLleno: tablero)
-        ifTrue: [ estadoTableritos at: indice put: #empate ].
+    (self arregloLleno: casillas)
+        ifTrue:  [ estadoTableritos at: indiceTablerito put: #empate ]
+        ifFalse: [ estadoTableritos at: indiceTablerito put: #enJuego ].
 
 ]
 
@@ -37,8 +39,9 @@ SuperTateti >> actualizarGanadorGeneral [
 ]
 
 { #category : 'game_logic' }
-SuperTateti >> arregloLleno: unArray [
-    ^ unArray allSatisfy: [:cada | cada notNil ].
+SuperTateti >> arregloLleno: unArreglo [
+    ^ unArreglo noneSatisfy: [:valor |
+        valor = #enJuego or: [ valor isNil ] ].
 
 ]
 
@@ -96,22 +99,37 @@ SuperTateti >> ganador: unSimbolo [
 ]
 
 { #category : 'game_logic' }
-SuperTateti >> ganadorEnArregloDe9: arreglo [
-    | lineas |
-    lineas := #(
-        #(1 2 3) #(4 5 6) #(7 8 9)
-        #(1 4 7) #(2 5 8) #(3 6 9)
-        #(1 5 9) #(3 5 7)
-    ).
+SuperTateti >> ganadorEnArregloDe9: unArregloDe9 [
+    | line winner |
 
-    lineas do: [:trio |
-        | a b c |
-        a := arreglo at: trio first.
-        a ifNotNil: [
-            b := arreglo at: trio second.
-            c := arreglo at: trio third.
-            (a = b and: [ b = c ])
-                ifTrue: [ ^ a ] ] ].
+    #(
+        (1 2 3)
+        (4 5 6)
+        (7 8 9)
+        (1 4 7)
+        (2 5 8)
+        (3 6 9)
+        (1 5 9)
+        (3 5 7)) do: [:triple |
+
+            line := triple collect: [:i | unArregloDe9 at: i ].
+            winner := self ganadorEnLinea: line.
+            winner ifNotNil: [ ^ winner ] ].
+
+    ^ nil
+
+]
+
+{ #category : 'game_logic' }
+SuperTateti >> ganadorEnLinea: tripleta [
+    | a b c |
+    a := tripleta first.
+    a isNil ifTrue: [ ^ nil ].
+    b := tripleta second.
+    c := tripleta third.
+
+    ((a = b and: [ b = c ]) and: [ #(#x #o) includes: a ])
+        ifTrue: [ ^ a ].
 
     ^ nil
 
@@ -127,7 +145,7 @@ SuperTateti >> initialize [
 { #category : 'game_logic' }
 SuperTateti >> juegoTerminado [
     ^ ganador notNil
-        or: [ estadoTableritos allSatisfy: [:e | e ~= #enJuego ] ].
+        or: [ self arregloLleno: estadoTableritos ].
 
 ]
 
@@ -145,7 +163,6 @@ SuperTateti >> jugadorActual: unSimbolo [
 
 { #category : 'game_logic' }
 SuperTateti >> jugarEnTablerito: indiceTablerito casilla: indiceCasilla [
-
     (self juegoTerminado) ifTrue: [
         ^ self error: 'El juego ya terminó' ].
 
@@ -155,12 +172,11 @@ SuperTateti >> jugarEnTablerito: indiceTablerito casilla: indiceCasilla [
     (tableritos at: indiceTablerito) at: indiceCasilla put: jugadorActual.
 
     self actualizarEstadoDeTablerito: indiceTablerito.
-
     self actualizarGanadorGeneral.
-    ganador ifNotNil: [ ^ self ].
+
+    ganador ifNotNil: [ ^ self ].   "si hay ganador, corto acá"
 
     proximoTablerito := indiceCasilla.
-
     ((estadoTableritos at: proximoTablerito) ~= #enJuego
         or: [ self tableritoLleno: proximoTablerito ]) ifTrue: [
             proximoTablerito := nil ].
