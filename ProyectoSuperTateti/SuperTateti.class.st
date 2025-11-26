@@ -213,6 +213,7 @@ SuperTateti >> tableritos: unArray [
 
 { #category : 'testing' }
 SuperTateti >> testPoner: unSimbolo enTablerito: indiceTablerito casilla: indiceCasilla [
+	"sirve para saltearse la logica y ver el fin del juego"
     (tableritos at: indiceTablerito) at: indiceCasilla put: unSimbolo
 
 ]
