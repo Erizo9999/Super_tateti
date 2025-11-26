@@ -26,6 +26,7 @@ TableroTatetiAbstracto >> calcularGanador [
             ^ marcasLinea anyOne ] ].
     ^ nil.
 
+
 ]
 
 { #category : 'accessing' }

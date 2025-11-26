@@ -17,14 +17,22 @@ TableroChico >> colocar: unSimbolo fila: fila columna: columna [
 ]
 
 { #category : 'game-logic' }
+TableroChico >> estaOcupada [
+    "Para el tablero grande: consideramos ocupado si el tablerito ya terminó."
+    ^ self estaTerminado.
+
+]
+
+{ #category : 'game-logic' }
 TableroChico >> estaTerminado [
+    "Un tablerito está terminado si tiene ganador o si está lleno."
     ^ self hayGanador or: [ self estaLleno ].
 
 ]
 
 { #category : 'game-logic' }
 TableroChico >> hayGanador [
-    ^ self ganador notNil.
+    ^ ganador notNil.
 
 ]
 
@@ -42,5 +50,12 @@ TableroChico >> inicializarCeldas [
 { #category : 'initialization' }
 TableroChico >> initialize [
     super initialize.
+
+]
+
+{ #category : 'game-logic' }
+TableroChico >> marcaParaGanador [
+    "Para el tablero grande: devuelve #X, #O o nil si no hay ganador."
+    ^ ganador.
 
 ]
