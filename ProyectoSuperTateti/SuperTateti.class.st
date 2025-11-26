@@ -31,7 +31,7 @@ SuperTateti >> actualizarEstadoDeTablerito: indice [
 SuperTateti >> actualizarGanadorGeneral [
     | g |
     g := self ganadorEnArregloDe9: estadoTableritos.
-    (g = #x or: [ g = #o ]) ifTrue: [
+    (#(#x #o) includes: g) ifTrue: [
         ganador := g ].
 
 ]
