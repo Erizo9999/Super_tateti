@@ -128,7 +128,7 @@ SuperTatetiMorph >> crearTableritoEn: panelPrincipal indice: indiceTablerito [
 SuperTatetiMorph >> crearTablero [
     | mainPanel boardPanel bottomPanel
       botonNew botonExit filas columnas cellSize
-      filaMorph btn tIndex cIndex gap gapMorph rowGap |
+      filaMorph btn tIndex cIndex gap gapMorph rowGap ancho |
 
     filas := 9.
     columnas := 9.
@@ -151,7 +151,7 @@ SuperTatetiMorph >> crearTablero [
     boardPanel hResizing: #shrinkWrap;
                vResizing: #shrinkWrap;
                cellInset: 0.
-    boardPanel color: Color veryLightGray.
+    boardPanel color: mainPanel color.  "mismo color que el fondo"
 
     "inicializamos la ivar botones"
     botones := Array new: 9.
@@ -190,7 +190,7 @@ SuperTatetiMorph >> crearTablero [
             (#(3 6) includes: col) ifTrue: [
                 gapMorph := Morph new.
                 gapMorph extent: gap @ cellSize.
-                gapMorph color: boardPanel color.
+                gapMorph color: Color veryLightGray.
                 gapMorph borderWidth: 0.
                 filaMorph addMorph: gapMorph ] ].
 
@@ -198,10 +198,12 @@ SuperTatetiMorph >> crearTablero [
 
         "después de las filas 3 y 6, agregamos una fila de espacio"
         (#(3 6) includes: row) ifTrue: [
+            ancho := columnas * cellSize + (2 * gap).  "ancho exacto del tablero"
+
             rowGap := Morph new.
             rowGap layoutPolicy: nil.
-            rowGap extent: filaMorph fullBounds width @ gap.
-            rowGap color: boardPanel color.
+            rowGap extent: ancho @ gap.
+            rowGap color: Color veryLightGray.
             rowGap borderWidth: 0.
             boardPanel addMorph: rowGap ] ].
 
