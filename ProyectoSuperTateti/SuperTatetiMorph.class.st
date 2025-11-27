@@ -73,6 +73,13 @@ SuperTatetiMorph >> anunciarGanador [
 
 ]
 
+{ #category : 'building' }
+SuperTatetiMorph >> armarLayoutGeneral: mainPanel board: boardPanel bottom: bottomPanel [
+    mainPanel addMorph: boardPanel.
+    mainPanel addMorph: bottomPanel.
+    window addMorph: mainPanel frame: (0@0 corner: 1@1).
+]
+
 { #category : 'helpers' }
 SuperTatetiMorph >> cerrarVentana [
     window delete.
@@ -92,6 +99,132 @@ SuperTatetiMorph >> clicEnTablerito: indiceTablerito casilla: indiceCasilla [
     (juego juegoTerminado) ifTrue: [
         self anunciarGanador ].
 
+]
+
+{ #category : 'building' }
+SuperTatetiMorph >> crearBoardPanel [
+    | boardPanel |
+    boardPanel := Morph new.
+    boardPanel layoutPolicy: TableLayout new.
+    boardPanel listDirection: #topToBottom.
+    boardPanel hResizing: #shrinkWrap;
+               vResizing: #shrinkWrap;
+               cellInset: 0.
+    boardPanel color: Color veryLightGray.
+
+    self inicializarBotones.
+
+    1 to: 9 do: [:row |
+        boardPanel addMorph: (self crearFila: row).
+        (#(3 6) includes: row) ifTrue: [
+            boardPanel addMorph: self crearGapFila ] ].
+
+    ^ boardPanel
+]
+
+{ #category : 'building' }
+SuperTatetiMorph >> crearBotonConLabel: label action: selector [
+    ^ SimpleButtonMorph new
+        label: label;
+        extent: 100@40;
+        color: Color lightGray;
+        borderWidth: 1; borderColor: Color black;
+        target: self; actionSelector: selector;
+        yourself
+]
+
+{ #category : 'building' }
+SuperTatetiMorph >> crearBotonEnFila: row columna: col [
+ | tIndex cIndex btn |
+    tIndex := ((row - 1) // 3) * 3 + ((col - 1) // 3) + 1.
+    cIndex := ((row - 1) \\ 3) * 3 + ((col - 1) \\ 3) + 1.
+
+    btn := SimpleButtonMorph new.
+    btn extent: 30@30.
+    btn hResizing: #rigid; vResizing: #rigid.
+    btn color: Color white.
+    btn borderWidth: 1; borderColor: Color black.
+    btn target: self; actionSelector: #clicEnTablerito:casilla:; arguments: {tIndex. cIndex}.
+
+    (botones at: tIndex) at: cIndex put: btn.
+    ^ btn
+
+]
+
+{ #category : 'building' }
+SuperTatetiMorph >> crearBottomPanel [
+    | bottomPanel botonExit botonNew |
+    bottomPanel := Morph new.
+    bottomPanel layoutPolicy: TableLayout new.
+    bottomPanel listDirection: #leftToRight.
+    bottomPanel hResizing: #shrinkWrap; vResizing: #shrinkWrap.
+    bottomPanel color: Color lightGray.
+
+    botonExit := self crearBotonConLabel: 'Exit' action: #cerrarVentana.
+    botonNew := self crearBotonConLabel: 'New' action: #reiniciarJuego.
+
+    bottomPanel addMorph: botonExit; addMorph: botonNew.
+    ^ bottomPanel
+]
+
+{ #category : 'building' }
+SuperTatetiMorph >> crearFila: row [
+    | filaMorph |
+    filaMorph := Morph new.
+    filaMorph layoutPolicy: TableLayout new.
+    filaMorph listDirection: #leftToRight.
+    filaMorph hResizing: #shrinkWrap;
+              vResizing: #shrinkWrap;
+              cellInset: 0.
+
+    1 to: 9 do: [:col |
+        filaMorph addMorph: (self crearBotonEnFila: row columna: col).
+        (#(3 6) includes: col) ifTrue: [
+            filaMorph addMorph: self crearGapColumna ] ].
+
+    ^ filaMorph
+
+]
+
+{ #category : 'building' }
+SuperTatetiMorph >> crearGapColumna [
+    ^ Morph new
+        layoutPolicy: nil;
+        hResizing: #rigid;
+        vResizing: #rigid;
+        extent: 6@30;   "dale un poco más de ancho para que se note"
+        color: Color gray;   "color más visible"
+        borderWidth: 0;
+        yourself
+]
+
+{ #category : 'building' }
+SuperTatetiMorph >> crearGapFila [
+    | ancho |
+    "Calculamos el ancho total del tablero: 9 celdas de 30 + 2 gaps de columna"
+    ancho := (9 * 30) + (2 * 6).
+
+    ^ Morph new
+        layoutPolicy: nil;
+        hResizing: #rigid;
+        vResizing: #rigid;
+        extent: ancho @ 6;   "alto del gap horizontal"
+        color: Color gray;   "usa gris para confirmar que aparece"
+        borderWidth: 0;
+        yourself
+
+]
+
+{ #category : 'building' }
+SuperTatetiMorph >> crearMainPanel [
+    ^ Morph new
+        layoutPolicy: TableLayout new;
+        listDirection: #topToBottom;
+        hResizing: #spaceFill;
+        vResizing: #spaceFill;
+        cellInset: 10;
+        color: Color veryLightGray;
+        yourself
 ]
 
 { #category : 'helpers' }
@@ -246,10 +379,25 @@ SuperTatetiMorph >> crearTablero [
 ]
 
 { #category : 'building' }
+SuperTatetiMorph >> crearTablero2 [
+    | mainPanel boardPanel bottomPanel |
+    mainPanel := self crearMainPanel.
+    boardPanel := self crearBoardPanel.
+    bottomPanel := self crearBottomPanel.
+    self armarLayoutGeneral: mainPanel board: boardPanel bottom: bottomPanel.
+]
+
+{ #category : 'building' }
 SuperTatetiMorph >> crearVentana [
     window := SystemWindow labelled: 'Super Tateti'.
     window extent: 450@450.
 
+]
+
+{ #category : 'building' }
+SuperTatetiMorph >> inicializarBotones [
+    botones := Array new: 9.
+    1 to: 9 do: [:t | botones at: t put: (Array new: 9) ].
 ]
 
 { #category : 'initialization' }
@@ -262,7 +410,7 @@ SuperTatetiMorph >> initialize [
 SuperTatetiMorph >> openInWorld [
     juego := SuperTateti new.
     self crearVentana.
-    self crearTablero.
+    self crearTablero2 .
     self actualizarVista.
     window openInWorld.
 
