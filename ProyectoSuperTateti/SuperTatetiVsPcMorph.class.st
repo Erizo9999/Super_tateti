@@ -30,19 +30,57 @@ SuperTatetiVsPcMorph >> app: unaApp [
 
 { #category : 'building' }
 SuperTatetiVsPcMorph >> construirInterfaz [
-    | panelXO panelOpciones panelReady |
+    | panelXO panelOpciones panelReady espacioSuperior espacioCentral espacioInferior espacioEntreXOyOpciones |
 
-    "Usamos el instVar mainPanel"
     mainPanel := self crearMainPanel.
     panelXO := self crearPanelXO.
     panelOpciones := self crearPanelOpciones.
     panelReady := self crearPanelReady.
 
-    "Orden: arriba X/O, luego opciones, abajo Ready"
+    "Espacio fijo arriba para que X/O no quede pegado al borde superior"
+    espacioSuperior := Morph new.
+    espacioSuperior layoutPolicy: nil.
+    espacioSuperior
+        hResizing: #spaceFill;
+        vResizing: #rigid;
+        extent: 0@30.
+    espacioSuperior color: Color veryLightGray.
+
+    "Espacio fijo entre el panel X/O y las opciones (Return/Help/time)"
+    espacioEntreXOyOpciones := Morph new.
+    espacioEntreXOyOpciones layoutPolicy: nil.
+    espacioEntreXOyOpciones
+        hResizing: #spaceFill;
+        vResizing: #rigid;
+        extent: 0@15.   "aumentá o bajá este valor si querés más/menos distancia"
+    espacioEntreXOyOpciones color: Color veryLightGray.
+
+    "Espacio flexible en el medio para empujar los botones hacia abajo"
+    espacioCentral := Morph new.
+    espacioCentral layoutPolicy: nil.
+    espacioCentral
+        hResizing: #spaceFill;
+        vResizing: #spaceFill.
+    espacioCentral color: Color veryLightGray.
+
+    "Espacio fijo abajo para que Ready/Leave no peguen contra el borde inferior"
+    espacioInferior := Morph new.
+    espacioInferior layoutPolicy: nil.
+    espacioInferior
+        hResizing: #spaceFill;
+        vResizing: #rigid;
+        extent: 0@20.
+    espacioInferior color: Color veryLightGray.
+
+    "Orden: margen sup, X/O, espacio extra, opciones, espacio flex, botones, margen inf"
     mainPanel
+        addMorph: espacioInferior;
         addMorph: panelReady;
+        addMorph: espacioCentral;
         addMorph: panelOpciones;
-        addMorph: panelXO.
+        addMorph: espacioEntreXOyOpciones;
+        addMorph: panelXO;
+        addMorph: espacioSuperior.
 
     window addMorph: mainPanel frame: (0@0 corner: 1@1).
 
@@ -260,7 +298,6 @@ SuperTatetiVsPcMorph >> openInWorld [
 
 { #category : 'events' }
 SuperTatetiVsPcMorph >> volverAlInicio [
-    app ifNotNil: [
-        app volverAlMenu ]
+    app volverAlMenu
 
 ]
