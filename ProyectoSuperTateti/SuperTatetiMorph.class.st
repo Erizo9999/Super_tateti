@@ -6,7 +6,8 @@ Class {
 		'botones',
 		'window',
 		'mainPanel',
-		'app'
+		'app',
+		'returnHabilitado'
 	],
 	#category : 'ProyectoSuperTateti',
 	#package : 'ProyectoSuperTateti'
@@ -332,7 +333,16 @@ SuperTatetiMorph >> crearTopBarPanel [
               cellInset: 5.
     topPanel color: Color lightGray.
 
-    botonReturn := self crearBotonConLabel: 'Return' action: #funcionNoImplementada.
+    botonReturn := self crearBotonConLabel: 'Return'
+        action: (returnHabilitado
+            ifTrue: [ #returnPresionado ]
+            ifFalse: [ #returnDeshabilitado ]).
+
+    "Si está deshabilitado, lo mostramos más apagado"
+    returnHabilitado ifFalse: [
+        botonReturn color: Color veryLightGray.
+        botonReturn borderColor: Color gray ].
+
     botonHelp   := self crearBotonConLabel: 'Help'   action: #funcionNoImplementada.
     botonStart  := self crearBotonConLabel: 'Start'  action: #funcionNoImplementada.
     botonLeave  := self crearBotonConLabel: 'Leave'  action: #volverAlInicio.
@@ -341,7 +351,7 @@ SuperTatetiMorph >> crearTopBarPanel [
         addMorph: botonLeave;
         addMorph: botonStart;
         addMorph: botonHelp;
-		  addMorph: botonReturn.
+        addMorph: botonReturn.
 
     ^ topPanel
 
@@ -369,6 +379,7 @@ SuperTatetiMorph >> inicializarBotones [
 { #category : 'initialization' }
 SuperTatetiMorph >> initialize [
     super initialize.
+    returnHabilitado := true.   "si lo abren directo con openInWorld, Return está habilitado"
 
 ]
 
@@ -399,6 +410,32 @@ SuperTatetiMorph >> openInWorld [
 { #category : 'helpers' }
 SuperTatetiMorph >> reiniciarJuego [
     juego reiniciar.
+    self actualizarVista.
+
+]
+
+{ #category : 'events' }
+SuperTatetiMorph >> returnDeshabilitado [
+    UIManager default inform: 'La función Return está deshabilitada para esta partida.'
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiMorph >> returnHabilitado [
+    ^ returnHabilitado
+]
+
+{ #category : 'accessing' }
+SuperTatetiMorph >> returnHabilitado: unBooleano [
+    returnHabilitado := unBooleano
+]
+
+{ #category : 'events' }
+SuperTatetiMorph >> returnPresionado [
+    [ juego deshacerUltimaJugada ]
+        on: Error
+        do: [:ex | UIManager default inform: ex messageText ].
+
     self actualizarVista.
 
 ]

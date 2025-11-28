@@ -6,7 +6,8 @@ Class {
 		'estadoTableritos',
 		'jugadorActual',
 		'proximoTablerito',
-		'ganador'
+		'ganador',
+		'historialJugadas'
 	],
 	#category : 'ProyectoSuperTateti',
 	#package : 'ProyectoSuperTateti'
@@ -33,8 +34,9 @@ SuperTateti >> actualizarEstadoDeTablerito: indiceTablerito [
 SuperTateti >> actualizarGanadorGeneral [
     | g |
     g := self ganadorEnArregloDe9: estadoTableritos.
-    (#(#x #o) includes: g) ifTrue: [
-        ganador := g ].
+    ganador := (#(#x #o) includes: g)
+        ifTrue: [ g ]
+        ifFalse: [ nil ].
 
 ]
 
@@ -50,6 +52,40 @@ SuperTateti >> cambiarJugador [
     jugadorActual := (jugadorActual = #x)
         ifTrue: [ #o ]
         ifFalse: [ #x ].
+
+]
+
+{ #category : 'game_logic' }
+SuperTateti >> deshacerUltimaJugada [
+    | ultimo tIndex cIndex anterior |
+
+    historialJugadas isEmpty ifTrue: [
+        ^ self error: 'No hay jugadas para deshacer' ].
+
+    "Sacar la última jugada del historial"
+    ultimo := historialJugadas removeLast.
+    tIndex := ultimo first.
+    cIndex := ultimo second.
+
+    "Vaciar esa casilla en el tablero"
+    (tableritos at: tIndex) at: cIndex put: nil.
+
+    "Recalcular estado del tablerito afectado y del ganador general"
+    self actualizarEstadoDeTablerito: tIndex.
+    self actualizarGanadorGeneral.
+
+    "Volver al jugador que hizo esa jugada (mismo jugador sigue)"
+    self cambiarJugador.
+
+    "Recalcular proximoTablerito según la jugada anterior (si existe)"
+    historialJugadas isEmpty
+        ifTrue: [ proximoTablerito := nil ]
+        ifFalse: [
+            anterior := historialJugadas last.
+            proximoTablerito := anterior second.
+            ((estadoTableritos at: proximoTablerito) ~= #enJuego
+                or: [ self tableritoLleno: proximoTablerito ]) ifTrue: [
+                    proximoTablerito := nil ] ].
 
 ]
 
@@ -169,7 +205,11 @@ SuperTateti >> jugarEnTablerito: indiceTablerito casilla: indiceCasilla [
     (self esMovimientoValidoEnTablerito: indiceTablerito casilla: indiceCasilla)
         ifFalse: [ ^ self error: 'Movimiento inválido' ].
 
+    "Registrar la jugada en el tablero"
     (tableritos at: indiceTablerito) at: indiceCasilla put: jugadorActual.
+
+    "Guardar jugada en el historial"
+    historialJugadas add: { indiceTablerito. indiceCasilla }.
 
     self actualizarEstadoDeTablerito: indiceTablerito.
     self actualizarGanadorGeneral.
@@ -206,6 +246,7 @@ SuperTateti >> reiniciar [
     ganador := nil.
     jugadorActual := #x.
     proximoTablerito := nil.
+    historialJugadas := OrderedCollection new.
 
 ]
 

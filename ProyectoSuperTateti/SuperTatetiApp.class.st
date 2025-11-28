@@ -37,6 +37,43 @@ SuperTatetiApp >> crearVentana [
 ]
 
 { #category : 'events' }
+SuperTatetiApp >> iniciarJuego1vs1 [
+    "Sacar el contenido actual (pantalla de configuración) de la ventana"
+    contenidoActual ifNotNil: [
+        window removeMorph: contenidoActual.
+        contenidoActual := nil
+    ].
+
+    "Crear el juego 1 vs 1 y conectarlo con la App"
+    juegoMorph := SuperTatetiMorph new.
+    juegoMorph app: self.
+    juegoMorph instalarEnVentana: window.
+
+    "Recordar el panel principal del juego como contenido actual"
+    contenidoActual := juegoMorph mainPanel
+
+]
+
+{ #category : 'events' }
+SuperTatetiApp >> iniciarJuego1vs1ConReturn: habilitarReturn [
+    "Sacar el contenido actual (pantalla de configuración) de la ventana"
+    contenidoActual ifNotNil: [
+        window removeMorph: contenidoActual.
+        contenidoActual := nil
+    ].
+
+    "Crear el juego 1 vs 1 y conectarlo con la App"
+    juegoMorph := SuperTatetiMorph new.
+    juegoMorph app: self.
+    juegoMorph returnHabilitado: habilitarReturn.
+    juegoMorph instalarEnVentana: window.
+
+    "Recordar el panel principal del juego como contenido actual"
+    contenidoActual := juegoMorph mainPanel
+
+]
+
+{ #category : 'events' }
 SuperTatetiApp >> jugar1vs1 [
     "Sacar el contenido actual (el menú) de la ventana"
     contenidoActual ifNotNil: [
@@ -44,12 +81,12 @@ SuperTatetiApp >> jugar1vs1 [
         contenidoActual := nil
     ].
 
-    "Crear el juego y conectarlo con la App"
-    juegoMorph := SuperTatetiMorph new.
+    "Crear la pantalla de configuración (SuperTatetiVsPcMorph) y conectarla con la App"
+    juegoMorph := SuperTatetiVsPcMorph new.
     juegoMorph app: self.
     juegoMorph instalarEnVentana: window.
 
-    "Recordar el panel principal del juego como contenido actual"
+    "Recordar el panel principal de esta pantalla como contenido actual"
     contenidoActual := juegoMorph mainPanel
 
 ]

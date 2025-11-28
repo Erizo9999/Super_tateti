@@ -4,7 +4,9 @@ Class {
 	#instVars : [
 		'window',
 		'mainPanel',
-		'app'
+		'app',
+		'botonReturnConfig',
+		'returnHabilitado'
 	],
 	#category : 'ProyectoSuperTateti',
 	#package : 'ProyectoSuperTateti'
@@ -129,11 +131,11 @@ SuperTatetiVsPcMorph >> crearPanelOpciones [
     lbl color: Color black.
 
     btnReturn := SimpleButtonMorph new.
-    btnReturn label: 'X'.
+    btnReturn label: (returnHabilitado ifTrue: ['X'] ifFalse: [' ']).
     btnReturn extent: 40@30.
-    btnReturn target: self; actionSelector: #opcionNoImplementada.
+    btnReturn target: self; actionSelector: #toggleReturnConfig.
 
-    "Primero el cuadrado, luego el texto"
+    "Primero el cuadrado, luego el texto (como te gustó)"
     filaReturn addMorph: btnReturn.
     filaReturn addMorph: lbl.
 
@@ -152,7 +154,6 @@ SuperTatetiVsPcMorph >> crearPanelOpciones [
     btnHelp extent: 40@30.
     btnHelp target: self; actionSelector: #opcionNoImplementada.
 
-    "Primero el cuadrado, luego el texto"
     filaHelp addMorph: btnHelp.
     filaHelp addMorph: lbl.
 
@@ -176,12 +177,16 @@ SuperTatetiVsPcMorph >> crearPanelOpciones [
     lblTiempo color: Color black.
     marcoTiempo addMorph: lblTiempo.
 
+    "Ojo: respetamos tu orden: primero marcoTiempo, luego 'time:'"
     filaTime addMorph: marcoTiempo.
     filaTime addMorph: lbl.
 
     panel addMorph: filaTime.
     panel addMorph: filaHelp.
     panel addMorph: filaReturn.
+
+    "Guardamos el botón para poder cambiarle el label luego"
+    botonReturnConfig := btnReturn.
 
     ^ panel
 
@@ -197,8 +202,15 @@ SuperTatetiVsPcMorph >> crearPanelReady [
     panel
         hResizing: #shrinkWrap;
         vResizing: #shrinkWrap;
-        cellInset: 80.        "separación horizontal entre los botones"
+        cellInset: 80.
     panel color: Color veryLightGray.
+
+    botonReady := SimpleButtonMorph new.
+    botonReady label: 'Ready'.
+    botonReady extent: 150@50.
+    botonReady color: Color lightGray.
+    botonReady borderWidth: 2; borderColor: Color black.
+    botonReady target: self; actionSelector: #readyPresionado.
 
     botonLeave := SimpleButtonMorph new.
     botonLeave label: 'Leave'.
@@ -207,15 +219,8 @@ SuperTatetiVsPcMorph >> crearPanelReady [
     botonLeave borderWidth: 2; borderColor: Color black.
     botonLeave target: self; actionSelector: #volverAlInicio.
 
-    botonReady := SimpleButtonMorph new.
-    botonReady label: 'Ready'.
-    botonReady extent: 150@50.
-    botonReady color: Color lightGray.
-    botonReady borderWidth: 2; borderColor: Color black.
-    botonReady target: self; actionSelector: #opcionNoImplementada.
-
-    panel addMorph: botonLeave.
     panel addMorph: botonReady.
+    panel addMorph: botonLeave.
 
     ^ panel
 
@@ -267,6 +272,7 @@ SuperTatetiVsPcMorph >> crearVentana [
 { #category : 'initialization' }
 SuperTatetiVsPcMorph >> initialize [
     super initialize.
+    returnHabilitado := true.   "por defecto, Return habilitado"
 
 ]
 
@@ -293,6 +299,19 @@ SuperTatetiVsPcMorph >> openInWorld [
     self crearVentana.
     self construirInterfaz.
     window openInWorld.
+
+]
+
+{ #category : 'events' }
+SuperTatetiVsPcMorph >> readyPresionado [
+        app iniciarJuego1vs1ConReturn: returnHabilitado
+
+]
+
+{ #category : 'events' }
+SuperTatetiVsPcMorph >> toggleReturnConfig [
+    returnHabilitado := returnHabilitado not.
+    botonReturnConfig label: (returnHabilitado ifTrue: ['X'] ifFalse: [' ']).
 
 ]
 
