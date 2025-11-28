@@ -55,8 +55,20 @@ SuperTatetiApp >> jugar1vs1 [
 ]
 
 { #category : 'events' }
-SuperTatetiApp >> jugarVsPC [
-    UIManager default inform: 'Modo 1 vs PC todavía no está implementado.'
+SuperTatetiApp >> jugar1vsPC [
+    "Sacar el contenido actual (el menú) de la ventana"
+    contenidoActual ifNotNil: [
+        window removeMorph: contenidoActual.
+        contenidoActual := nil
+    ].
+
+    "Crear la pantalla de configuración 1 vs PC y conectarla con la App"
+    juegoMorph := SuperTatetiVsPcMorph new.
+    juegoMorph app: self.
+    juegoMorph instalarEnVentana: window.
+
+    "Recordar el panel principal de esta pantalla como contenido actual"
+    contenidoActual := juegoMorph mainPanel
 
 ]
 
@@ -87,13 +99,15 @@ SuperTatetiApp >> mostrarMenu [
     menuPanel borderColor: Color veryLightGray.
 
     "Botones del menú, en este orden"
-    boton1vs1 := self crearBotonConLabel: '1 vs 1' action: #jugar1vs1.
-    boton1vsPC := self crearBotonConLabel: '1 vs PC' action: #jugarVsPC.
-    botonExit := self crearBotonConLabel: 'Exit' action: #salir.
+	 boton1vs1 := self crearBotonConLabel: '1 vs 1' action: #jugar1vs1.
+	 boton1vsPC := self crearBotonConLabel: '1 vs PC' action: #jugar1vsPC.
+	 botonExit := self crearBotonConLabel: 'Exit' action: #salir.
 
-    menuPanel addMorph: botonExit.
-    menuPanel addMorph: boton1vsPC.
-    menuPanel addMorph: boton1vs1.
+	 "Orden visual: 1 vs 1 (arriba), 1 vs PC (medio), Exit (abajo)"
+	 menuPanel addMorph: botonExit.
+	 menuPanel addMorph: boton1vsPC.
+	 menuPanel addMorph: boton1vs1.
+
 
     mainPanel addMorph: menuPanel.
 
