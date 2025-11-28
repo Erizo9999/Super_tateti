@@ -7,7 +7,8 @@ Class {
 		'window',
 		'mainPanel',
 		'app',
-		'returnHabilitado'
+		'returnHabilitado',
+		'ayudaActiva'
 	],
 	#category : 'ProyectoSuperTateti',
 	#package : 'ProyectoSuperTateti'
@@ -45,9 +46,14 @@ SuperTatetiMorph >> actualizarBotonDeTablerito: indiceTablerito casilla: indiceC
 
 { #category : 'updating' }
 SuperTatetiMorph >> actualizarVista [
+    "Dibuja X/O y fondo blanco en todas las casillas"
     1 to: 9 do: [:t |
         1 to: 9 do: [:c |
             self actualizarBotonDeTablerito: t casilla: c ] ].
+
+    "Si la ayuda está activa, resalta donde se puede jugar"
+    ayudaActiva ifTrue: [
+        self resaltarMovimientosValidos ].
 
 ]
 
@@ -338,12 +344,7 @@ SuperTatetiMorph >> crearTopBarPanel [
             ifTrue: [ #returnPresionado ]
             ifFalse: [ #returnDeshabilitado ]).
 
-    "Si está deshabilitado, lo mostramos más apagado"
-    returnHabilitado ifFalse: [
-        botonReturn color: Color veryLightGray.
-        botonReturn borderColor: Color gray ].
-
-    botonHelp   := self crearBotonConLabel: 'Help'   action: #funcionNoImplementada.
+    botonHelp   := self crearBotonConLabel: 'Help'   action: #helpPresionado.
     botonStart  := self crearBotonConLabel: 'Start'  action: #funcionNoImplementada.
     botonLeave  := self crearBotonConLabel: 'Leave'  action: #volverAlInicio.
 
@@ -370,6 +371,21 @@ SuperTatetiMorph >> funcionNoImplementada [
 
 ]
 
+{ #category : 'events' }
+SuperTatetiMorph >> helpPresionado [
+    (juego juegoTerminado) ifTrue: [
+        UIManager default inform: 'El juego ya terminó.'.
+        ^ self
+    ].
+
+    "Toggle de la bandera"
+    ayudaActiva := ayudaActiva not.
+
+    "Redibujamos todo según el nuevo estado de la ayuda"
+    self actualizarVista.
+
+]
+
 { #category : 'building' }
 SuperTatetiMorph >> inicializarBotones [
     botones := Array new: 9.
@@ -379,7 +395,8 @@ SuperTatetiMorph >> inicializarBotones [
 { #category : 'initialization' }
 SuperTatetiMorph >> initialize [
     super initialize.
-    returnHabilitado := true.   "si lo abren directo con openInWorld, Return está habilitado"
+    returnHabilitado := true.   "por defecto, si abrís con openInWorld"
+    ayudaActiva := false.       "la ayuda empieza apagada"
 
 ]
 
@@ -411,6 +428,17 @@ SuperTatetiMorph >> openInWorld [
 SuperTatetiMorph >> reiniciarJuego [
     juego reiniciar.
     self actualizarVista.
+
+]
+
+{ #category : 'helpers' }
+SuperTatetiMorph >> resaltarMovimientosValidos [
+    1 to: 9 do: [:t |
+        1 to: 9 do: [:c |
+            (juego esMovimientoValidoEnTablerito: t casilla: c) ifTrue: [
+                | btn |
+                btn := (botones at: t) at: c.
+                btn color: Color yellow ] ] ].
 
 ]
 
