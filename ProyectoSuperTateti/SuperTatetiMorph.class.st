@@ -4,7 +4,9 @@ Class {
 	#instVars : [
 		'juego',
 		'botones',
-		'window'
+		'window',
+		'mainPanel',
+		'app'
 	],
 	#category : 'ProyectoSuperTateti',
 	#package : 'ProyectoSuperTateti'
@@ -41,23 +43,10 @@ SuperTatetiMorph >> actualizarBotonDeTablerito: indiceTablerito casilla: indiceC
 ]
 
 { #category : 'updating' }
-SuperTatetiMorph >> actualizarTituloVentana [
-    | titulo |
-    titulo := juego ganador
-        ifNil: [
-            'Super Tateti - turno: ', juego jugadorActual asString asUppercase ]
-        ifNotNil: [:g |
-            'Super Tateti - GANADOR: ', g asString asUppercase ].
-    window setLabel: titulo.
-
-]
-
-{ #category : 'updating' }
 SuperTatetiMorph >> actualizarVista [
     1 to: 9 do: [:t |
         1 to: 9 do: [:c |
             self actualizarBotonDeTablerito: t casilla: c ] ].
-    self actualizarTituloVentana.
 
 ]
 
@@ -73,11 +62,23 @@ SuperTatetiMorph >> anunciarGanador [
 
 ]
 
+{ #category : 'accessing' }
+SuperTatetiMorph >> app [
+    ^ app
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiMorph >> app: unaApp [
+    app := unaApp
+
+]
+
 { #category : 'building' }
-SuperTatetiMorph >> armarLayoutGeneral: mainPanel board: boardPanel bottom: bottomPanel [
-    mainPanel addMorph: boardPanel.
-    mainPanel addMorph: bottomPanel.
-    window addMorph: mainPanel frame: (0@0 corner: 1@1).
+SuperTatetiMorph >> armarLayoutGeneral: unMainPanel board: boardPanel [
+    unMainPanel addMorph: boardPanel.
+    window addMorph: unMainPanel frame: (0@0 corner: 1@1).
+
 ]
 
 { #category : 'helpers' }
@@ -152,22 +153,6 @@ SuperTatetiMorph >> crearBotonEnFila: row columna: col [
 ]
 
 { #category : 'building' }
-SuperTatetiMorph >> crearBottomPanel [
-    | bottomPanel botonExit botonNew |
-    bottomPanel := Morph new.
-    bottomPanel layoutPolicy: TableLayout new.
-    bottomPanel listDirection: #leftToRight.
-    bottomPanel hResizing: #shrinkWrap; vResizing: #shrinkWrap.
-    bottomPanel color: Color lightGray.
-
-    botonExit := self crearBotonConLabel: 'Exit' action: #cerrarVentana.
-    botonNew := self crearBotonConLabel: 'New' action: #reiniciarJuego.
-
-    bottomPanel addMorph: botonExit; addMorph: botonNew.
-    ^ bottomPanel
-]
-
-{ #category : 'building' }
 SuperTatetiMorph >> crearFila: row [
     | filaMorph |
     filaMorph := Morph new.
@@ -224,7 +209,66 @@ SuperTatetiMorph >> crearMainPanel [
         vResizing: #spaceFill;
         cellInset: 10;
         color: Color veryLightGray;
+        "alinear hijos (barra y tablero) a la izquierda"
+        listCentering: #left;
+        wrapCentering: #left;
         yourself
+
+]
+
+{ #category : 'building' }
+SuperTatetiMorph >> crearPanelTiempoConTitulo: titulo color: unColor [
+    | panel marcoTiempo etiquetaTiempo etiquetaTitulo |
+
+    panel := Morph new.
+    panel layoutPolicy: TableLayout new.
+    panel listDirection: #topToBottom.
+    panel hResizing: #shrinkWrap;
+           vResizing: #shrinkWrap;
+           cellInset: 5.
+    panel color: Color veryLightGray.
+
+    "Rectángulo donde más adelante irá el tiempo"
+    marcoTiempo := Morph new.
+    marcoTiempo layoutPolicy: TableLayout new.
+    marcoTiempo hResizing: #shrinkWrap;
+                vResizing: #shrinkWrap.
+    marcoTiempo color: unColor.
+    marcoTiempo borderWidth: 2;
+                borderColor: Color black.
+
+    etiquetaTiempo := StringMorph contents: '00:00'.
+    etiquetaTiempo color: Color black.
+    marcoTiempo addMorph: etiquetaTiempo.
+
+    "Texto de abajo: time: X / time: O"
+    etiquetaTitulo := StringMorph contents: titulo.
+    etiquetaTitulo color: Color black.
+
+    panel addMorph: marcoTiempo.
+    panel addMorph: etiquetaTitulo.
+
+    ^ panel
+
+]
+
+{ #category : 'building' }
+SuperTatetiMorph >> crearPanelTiempos [
+    | panel |
+
+    panel := Morph new.
+    panel layoutPolicy: TableLayout new.
+    panel listDirection: #leftToRight.
+    panel hResizing: #shrinkWrap;
+           vResizing: #shrinkWrap;
+           cellInset: 40.   "separación horizontal entre X y O"
+    panel color: Color veryLightGray.
+
+    panel addMorph: (self crearPanelTiempoConTitulo: 'time: X' color: Color cyan).
+    panel addMorph: (self crearPanelTiempoConTitulo: 'time: O' color: Color white).
+
+    ^ panel
+
 ]
 
 { #category : 'helpers' }
@@ -259,17 +303,60 @@ SuperTatetiMorph >> crearTableritoEn: panelPrincipal indice: indiceTablerito [
 
 { #category : 'building' }
 SuperTatetiMorph >> crearTablero [
-    | mainPanel boardPanel bottomPanel |
+    | topBar boardPanel panelTiempos |
+
     mainPanel := self crearMainPanel.
+    panelTiempos := self crearPanelTiempos.
     boardPanel := self crearBoardPanel.
-    bottomPanel := self crearBottomPanel.
-    self armarLayoutGeneral: mainPanel board: boardPanel bottom: bottomPanel.
+    topBar := self crearTopBarPanel.
+
+    "Orden correcto: barra arriba, tablero en el medio, tiempos abajo"
+    mainPanel addMorph: panelTiempos.
+    mainPanel addMorph: boardPanel.
+    mainPanel addMorph: topBar.
+
+
+    window addMorph: mainPanel frame: (0@0 corner: 1@1).
+
+]
+
+{ #category : 'building' }
+SuperTatetiMorph >> crearTopBarPanel [
+    | topPanel botonReturn botonHelp botonStart botonLeave |
+
+    topPanel := Morph new.
+    topPanel layoutPolicy: TableLayout new.
+    topPanel listDirection: #leftToRight.
+    topPanel hResizing: #shrinkWrap;
+              vResizing: #shrinkWrap;
+              cellInset: 5.
+    topPanel color: Color lightGray.
+
+    botonReturn := self crearBotonConLabel: 'Return' action: #funcionNoImplementada.
+    botonHelp   := self crearBotonConLabel: 'Help'   action: #funcionNoImplementada.
+    botonStart  := self crearBotonConLabel: 'Start'  action: #funcionNoImplementada.
+    botonLeave  := self crearBotonConLabel: 'Leave'  action: #volverAlInicio.
+
+    topPanel
+        addMorph: botonLeave;
+        addMorph: botonStart;
+        addMorph: botonHelp;
+		  addMorph: botonReturn.
+
+    ^ topPanel
+
 ]
 
 { #category : 'building' }
 SuperTatetiMorph >> crearVentana [
-    window := SystemWindow labelled: 'Super Tateti'.
-    window extent: 450@450.
+    window := SystemWindow labelled: 'Tic Tac Toe'.
+    window extent: 425@450.
+
+]
+
+{ #category : 'helpers' }
+SuperTatetiMorph >> funcionNoImplementada [
+    UIManager default inform: 'Esta función todavía no se implementó.'.
 
 ]
 
@@ -286,6 +373,20 @@ SuperTatetiMorph >> initialize [
 ]
 
 { #category : 'initialization' }
+SuperTatetiMorph >> instalarEnVentana: unaVentana [
+    juego := SuperTateti new.
+    window := unaVentana.
+    self crearTablero.
+    self actualizarVista
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiMorph >> mainPanel [ 
+	^ mainPanel 
+]
+
+{ #category : 'initialization' }
 SuperTatetiMorph >> openInWorld [
     juego := SuperTateti new.
     self crearVentana.
@@ -299,5 +400,11 @@ SuperTatetiMorph >> openInWorld [
 SuperTatetiMorph >> reiniciarJuego [
     juego reiniciar.
     self actualizarVista.
+
+]
+
+{ #category : 'events' }
+SuperTatetiMorph >> volverAlInicio [
+    app volverAlMenu
 
 ]
