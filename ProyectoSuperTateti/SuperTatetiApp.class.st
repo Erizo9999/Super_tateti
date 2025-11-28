@@ -27,6 +27,7 @@ SuperTatetiApp >> crearBotonConLabel: label action: selector [
         actionSelector: selector;
         yourself
 
+
 ]
 
 { #category : 'building' }
@@ -37,74 +38,33 @@ SuperTatetiApp >> crearVentana [
 ]
 
 { #category : 'events' }
-SuperTatetiApp >> iniciarJuego1vs1 [
-    "Sacar el contenido actual (pantalla de configuración) de la ventana"
-    contenidoActual ifNotNil: [
-        window removeMorph: contenidoActual.
-        contenidoActual := nil
-    ].
-
-    "Crear el juego 1 vs 1 y conectarlo con la App"
-    juegoMorph := SuperTatetiMorph new.
-    juegoMorph app: self.
-    juegoMorph instalarEnVentana: window.
-
-    "Recordar el panel principal del juego como contenido actual"
-    contenidoActual := juegoMorph mainPanel
-
-]
-
-{ #category : 'events' }
-SuperTatetiApp >> iniciarJuego1vs1ConReturn: habilitarReturn [
-    "Sacar el contenido actual (pantalla de configuración) de la ventana"
-    contenidoActual ifNotNil: [
-        window removeMorph: contenidoActual.
-        contenidoActual := nil
-    ].
-
-    "Crear el juego 1 vs 1 y conectarlo con la App"
-    juegoMorph := SuperTatetiMorph new.
-    juegoMorph app: self.
-    juegoMorph returnHabilitado: habilitarReturn.
-    juegoMorph instalarEnVentana: window.
-
-    "Recordar el panel principal del juego como contenido actual"
-    contenidoActual := juegoMorph mainPanel
-
-]
-
-{ #category : 'events' }
 SuperTatetiApp >> jugar1vs1 [
-    "Sacar el contenido actual (el menú) de la ventana"
     contenidoActual ifNotNil: [
         window removeMorph: contenidoActual.
         contenidoActual := nil
     ].
 
-    "Crear la pantalla de configuración (SuperTatetiVsPcMorph) y conectarla con la App"
-    juegoMorph := SuperTatetiVsPcMorph new.
+    juegoMorph := SuperTatetiMorph new.
     juegoMorph app: self.
+    juegoMorph returnHabilitado: true.
     juegoMorph instalarEnVentana: window.
 
-    "Recordar el panel principal de esta pantalla como contenido actual"
     contenidoActual := juegoMorph mainPanel
 
 ]
 
 { #category : 'events' }
 SuperTatetiApp >> jugar1vsPC [
-    "Sacar el contenido actual (el menú) de la ventana"
     contenidoActual ifNotNil: [
         window removeMorph: contenidoActual.
         contenidoActual := nil
     ].
 
-    "Crear la pantalla de configuración 1 vs PC y conectarla con la App"
-    juegoMorph := SuperTatetiVsPcMorph new.
+    juegoMorph := SuperTatetiMorph new.
     juegoMorph app: self.
+    juegoMorph returnHabilitado: false.
     juegoMorph instalarEnVentana: window.
 
-    "Recordar el panel principal de esta pantalla como contenido actual"
     contenidoActual := juegoMorph mainPanel
 
 ]
@@ -113,7 +73,6 @@ SuperTatetiApp >> jugar1vsPC [
 SuperTatetiApp >> mostrarMenu [
     | mainPanel menuPanel boton1vs1 boton1vsPC botonExit |
 
-    "Panel principal, ocupa toda la ventana"
     mainPanel := Morph new.
     mainPanel layoutPolicy: TableLayout new.
     mainPanel listDirection: #topToBottom.
@@ -124,7 +83,6 @@ SuperTatetiApp >> mostrarMenu [
               cellInset: 20.
     mainPanel color: Color veryLightGray.
 
-    "Panel del menú (caja con los tres botones)"
     menuPanel := Morph new.
     menuPanel layoutPolicy: TableLayout new.
     menuPanel listDirection: #topToBottom.
@@ -135,22 +93,18 @@ SuperTatetiApp >> mostrarMenu [
     menuPanel borderWidth: 1.
     menuPanel borderColor: Color veryLightGray.
 
-    "Botones del menú, en este orden"
-	 boton1vs1 := self crearBotonConLabel: '1 vs 1' action: #jugar1vs1.
-	 boton1vsPC := self crearBotonConLabel: '1 vs PC' action: #jugar1vsPC.
-	 botonExit := self crearBotonConLabel: 'Exit' action: #salir.
+    boton1vs1 := self crearBotonConLabel: '1 vs 1' action: #jugar1vs1.
+    boton1vsPC := self crearBotonConLabel: '1 vs PC' action: #jugar1vsPC.
+    botonExit := self crearBotonConLabel: 'Exit' action: #salir.
 
-	 "Orden visual: 1 vs 1 (arriba), 1 vs PC (medio), Exit (abajo)"
-	 menuPanel addMorph: botonExit.
-	 menuPanel addMorph: boton1vsPC.
-	 menuPanel addMorph: boton1vs1.
-
+    menuPanel addMorph: botonExit.
+    menuPanel addMorph: boton1vsPC.
+    menuPanel addMorph: boton1vs1.
 
     mainPanel addMorph: menuPanel.
 
-    "IMPORTANTE: solo agregamos al window, NO hacemos openInWorld aquí"
     window addMorph: mainPanel frame: (0@0 corner: 1@1).
-	 contenidoActual := mainPanel.
+    contenidoActual := mainPanel
 
 ]
 

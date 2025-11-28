@@ -52,8 +52,8 @@ SuperTatetiMorph >> actualizarVista [
             self actualizarBotonDeTablerito: t casilla: c ] ].
 
     "Si la ayuda está activa, resalta donde se puede jugar"
-    ayudaActiva ifTrue: [
-        self resaltarMovimientosValidos ].
+    (ayudaActiva == true) ifTrue: [
+        self resaltarMovimientosValidos ]
 
 ]
 
@@ -78,19 +78,6 @@ SuperTatetiMorph >> app [
 { #category : 'accessing' }
 SuperTatetiMorph >> app: unaApp [
     app := unaApp
-
-]
-
-{ #category : 'building' }
-SuperTatetiMorph >> armarLayoutGeneral: unMainPanel board: boardPanel [
-    unMainPanel addMorph: boardPanel.
-    window addMorph: unMainPanel frame: (0@0 corner: 1@1).
-
-]
-
-{ #category : 'helpers' }
-SuperTatetiMorph >> cerrarVentana [
-    window delete.
 
 ]
 
@@ -278,38 +265,8 @@ SuperTatetiMorph >> crearPanelTiempos [
 
 ]
 
-{ #category : 'helpers' }
-SuperTatetiMorph >> crearTableritoEn: panelPrincipal indice: indiceTablerito [
-    | panelTablerito botonesTablerito |
-    
-    panelTablerito := Morph new.
-    panelTablerito layoutPolicy: TableLayout new.
-    panelTablerito listDirection: #leftToRight.
-    panelTablerito wrapCentering: #center.
-    panelTablerito cellInset: 1.
-    panelTablerito hResizing: #spaceFill;
-                   vResizing: #spaceFill.
-    panelTablerito borderWidth: 2.
-    panelTablerito borderColor: Color black.
-
-    botonesTablerito := (1 to: 9) collect: [:c |
-        | btn |
-        btn := SimpleButtonMorph new.
-        btn extent: 30@30.
-        btn label: ' '.
-        btn target: self.
-        btn actionSelector: #clicEnTablerito:casilla:.
-        btn arguments: { indiceTablerito. c }.
-        panelTablerito addMorph: btn.
-        btn ].
-
-    panelPrincipal addMorph: panelTablerito.
-    ^ botonesTablerito
-
-]
-
 { #category : 'building' }
-SuperTatetiMorph >> crearTablero [
+SuperTatetiMorph >> crearTablero [ 
     | topBar boardPanel panelTiempos |
 
     mainPanel := self crearMainPanel.
@@ -317,13 +274,12 @@ SuperTatetiMorph >> crearTablero [
     boardPanel := self crearBoardPanel.
     topBar := self crearTopBarPanel.
 
-    "Orden correcto: barra arriba, tablero en el medio, tiempos abajo"
     mainPanel addMorph: panelTiempos.
     mainPanel addMorph: boardPanel.
     mainPanel addMorph: topBar.
 
+    window addMorph: mainPanel frame: (0@0 corner: 1@1)
 
-    window addMorph: mainPanel frame: (0@0 corner: 1@1).
 
 ]
 
@@ -393,7 +349,7 @@ SuperTatetiMorph >> inicializarBotones [
 ]
 
 { #category : 'initialization' }
-SuperTatetiMorph >> initialize [
+SuperTatetiMorph >> initialize [ 
     super initialize.
     returnHabilitado := true.   "por defecto, si abrís con openInWorld"
     ayudaActiva := false.       "la ayuda empieza apagada"
@@ -401,7 +357,7 @@ SuperTatetiMorph >> initialize [
 ]
 
 { #category : 'initialization' }
-SuperTatetiMorph >> instalarEnVentana: unaVentana [
+SuperTatetiMorph >> instalarEnVentana: unaVentana [ 
     juego := SuperTateti new.
     window := unaVentana.
     self crearTablero.
@@ -421,13 +377,6 @@ SuperTatetiMorph >> openInWorld [
     self crearTablero .
     self actualizarVista.
     window openInWorld.
-
-]
-
-{ #category : 'helpers' }
-SuperTatetiMorph >> reiniciarJuego [
-    juego reiniciar.
-    self actualizarVista.
 
 ]
 

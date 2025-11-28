@@ -105,32 +105,8 @@ SuperTateti >> esMovimientoValidoEnTablerito: indiceTablerito casilla: indiceCas
 ]
 
 { #category : 'accessing' }
-SuperTateti >> estadoDeTablerito: indiceTablerito [
-    ^ estadoTableritos at: indiceTablerito
-
-]
-
-{ #category : 'accessing' }
-SuperTateti >> estadoTableritos [
-    ^ estadoTableritos
-
-]
-
-{ #category : 'accessing' }
-SuperTateti >> estadoTableritos: unArray [
-    estadoTableritos := unArray
-
-]
-
-{ #category : 'accessing' }
 SuperTateti >> ganador [
     ^ ganador
-
-]
-
-{ #category : 'accessing' }
-SuperTateti >> ganador: unSimbolo [
-    ganador := unSimbolo
 
 ]
 
@@ -185,18 +161,6 @@ SuperTateti >> juegoTerminado [
 
 ]
 
-{ #category : 'accessing' }
-SuperTateti >> jugadorActual [
-    ^ jugadorActual
-
-]
-
-{ #category : 'accessing' }
-SuperTateti >> jugadorActual: unSimbolo [
-    jugadorActual := unSimbolo
-
-]
-
 { #category : 'game_logic' }
 SuperTateti >> jugarEnTablerito: indiceTablerito casilla: indiceCasilla [
     (self juegoTerminado) ifTrue: [
@@ -225,18 +189,6 @@ SuperTateti >> jugarEnTablerito: indiceTablerito casilla: indiceCasilla [
 
 ]
 
-{ #category : 'accessing' }
-SuperTateti >> proximoTablerito [
-    ^ proximoTablerito
-
-]
-
-{ #category : 'accessing' }
-SuperTateti >> proximoTablerito: unNumero [
-    proximoTablerito := unNumero
-
-]
-
 { #category : 'initialization' }
 SuperTateti >> reiniciar [
     tableritos := (1 to: 9) collect: [:i |
@@ -253,18 +205,6 @@ SuperTateti >> reiniciar [
 { #category : 'game_logic' }
 SuperTateti >> tableritoLleno: indice [
     ^ self arregloLleno: (tableritos at: indice)
-
-]
-
-{ #category : 'accessing' }
-SuperTateti >> tableritos [
-    ^ tableritos
-
-]
-
-{ #category : 'accessing' }
-SuperTateti >> tableritos: unArray [
-    tableritos := unArray
 
 ]
 
