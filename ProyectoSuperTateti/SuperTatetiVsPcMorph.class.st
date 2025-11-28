@@ -30,16 +30,19 @@ SuperTatetiVsPcMorph >> app: unaApp [
 
 { #category : 'building' }
 SuperTatetiVsPcMorph >> construirInterfaz [
-    | mainPanel panelXO panelOpciones panelReady |
+    | panelXO panelOpciones panelReady |
 
+    "Usamos el instVar mainPanel"
     mainPanel := self crearMainPanel.
     panelXO := self crearPanelXO.
     panelOpciones := self crearPanelOpciones.
     panelReady := self crearPanelReady.
 
-    mainPanel addMorph: panelXO.
-    mainPanel addMorph: panelOpciones.
-    mainPanel addMorph: panelReady.
+    "Orden: arriba X/O, luego opciones, abajo Ready"
+    mainPanel
+        addMorph: panelReady;
+        addMorph: panelOpciones;
+        addMorph: panelXO.
 
     window addMorph: mainPanel frame: (0@0 corner: 1@1).
 
@@ -47,17 +50,21 @@ SuperTatetiVsPcMorph >> construirInterfaz [
 
 { #category : 'building' }
 SuperTatetiVsPcMorph >> crearMainPanel [
-    | mainPanel |
+    | panel |
 
-    mainPanel := Morph new.
-    mainPanel layoutPolicy: TableLayout new.
-    mainPanel listDirection: #topToBottom.
-    mainPanel hResizing: #spaceFill;
-              vResizing: #spaceFill;
-              cellInset: 15.
-    mainPanel color: Color veryLightGray.
+    panel := Morph new.
+    panel layoutPolicy: TableLayout new.
+    panel listDirection: #topToBottom.
+    panel
+        listCentering: #center;    "centra horizontalmente los hijos"
+        wrapCentering: #center.
+    panel
+        hResizing: #spaceFill;
+        vResizing: #spaceFill;
+        cellInset: 15.
+    panel color: Color veryLightGray.
 
-    ^ mainPanel
+    ^ panel
 
 ]
 
@@ -88,8 +95,9 @@ SuperTatetiVsPcMorph >> crearPanelOpciones [
     btnReturn extent: 40@30.
     btnReturn target: self; actionSelector: #opcionNoImplementada.
 
-    filaReturn addMorph: lbl.
+    "Primero el cuadrado, luego el texto"
     filaReturn addMorph: btnReturn.
+    filaReturn addMorph: lbl.
 
     "===== Help: [ ] ====="
     filaHelp := Morph new.
@@ -106,8 +114,9 @@ SuperTatetiVsPcMorph >> crearPanelOpciones [
     btnHelp extent: 40@30.
     btnHelp target: self; actionSelector: #opcionNoImplementada.
 
-    filaHelp addMorph: lbl.
+    "Primero el cuadrado, luego el texto"
     filaHelp addMorph: btnHelp.
+    filaHelp addMorph: lbl.
 
     "===== time: [ 02:00 ] ====="
     filaTime := Morph new.
@@ -129,12 +138,12 @@ SuperTatetiVsPcMorph >> crearPanelOpciones [
     lblTiempo color: Color black.
     marcoTiempo addMorph: lblTiempo.
 
-    filaTime addMorph: lbl.
     filaTime addMorph: marcoTiempo.
+    filaTime addMorph: lbl.
 
-    panel addMorph: filaReturn.
-    panel addMorph: filaHelp.
     panel addMorph: filaTime.
+    panel addMorph: filaHelp.
+    panel addMorph: filaReturn.
 
     ^ panel
 
@@ -142,23 +151,33 @@ SuperTatetiVsPcMorph >> crearPanelOpciones [
 
 { #category : 'building' }
 SuperTatetiVsPcMorph >> crearPanelReady [
-    | panel boton |
+    | panel botonLeave botonReady |
 
     panel := Morph new.
     panel layoutPolicy: TableLayout new.
-    panel listDirection: #topToBottom.
-    panel hResizing: #shrinkWrap;
-           vResizing: #shrinkWrap.
+    panel listDirection: #leftToRight.
+    panel
+        hResizing: #shrinkWrap;
+        vResizing: #shrinkWrap;
+        cellInset: 80.        "separación horizontal entre los botones"
     panel color: Color veryLightGray.
 
-    boton := SimpleButtonMorph new.
-    boton label: 'Ready'.
-    boton extent: 200@50.
-    boton color: Color lightGray.
-    boton borderWidth: 2; borderColor: Color black.
-    boton target: self; actionSelector: #opcionNoImplementada.
+    botonLeave := SimpleButtonMorph new.
+    botonLeave label: 'Leave'.
+    botonLeave extent: 150@50.
+    botonLeave color: Color lightGray.
+    botonLeave borderWidth: 2; borderColor: Color black.
+    botonLeave target: self; actionSelector: #volverAlInicio.
 
-    panel addMorph: boton.
+    botonReady := SimpleButtonMorph new.
+    botonReady label: 'Ready'.
+    botonReady extent: 150@50.
+    botonReady color: Color lightGray.
+    botonReady borderWidth: 2; borderColor: Color black.
+    botonReady target: self; actionSelector: #opcionNoImplementada.
+
+    panel addMorph: botonLeave.
+    panel addMorph: botonReady.
 
     ^ panel
 
@@ -171,9 +190,10 @@ SuperTatetiVsPcMorph >> crearPanelXO [
     panel := Morph new.
     panel layoutPolicy: TableLayout new.
     panel listDirection: #leftToRight.
-    panel hResizing: #shrinkWrap;
-           vResizing: #shrinkWrap;
-           cellInset: 0.
+    panel
+        hResizing: #shrinkWrap;   "se ajusta al tamaño de los botones"
+        vResizing: #shrinkWrap;
+        cellInset: 0.
     panel color: Color veryLightGray.
     panel borderWidth: 3;
            borderColor: Color black.
@@ -235,5 +255,12 @@ SuperTatetiVsPcMorph >> openInWorld [
     self crearVentana.
     self construirInterfaz.
     window openInWorld.
+
+]
+
+{ #category : 'events' }
+SuperTatetiVsPcMorph >> volverAlInicio [
+    app ifNotNil: [
+        app volverAlMenu ]
 
 ]
