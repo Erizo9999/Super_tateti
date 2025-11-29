@@ -2,13 +2,16 @@ Class {
 	#name : 'SuperTatetiMorph',
 	#superclass : 'Object',
 	#instVars : [
-		'juego',
-		'botones',
 		'window',
 		'mainPanel',
 		'app',
 		'returnHabilitado',
-		'ayudaActiva'
+		'ayudaActiva',
+		'juegoIniciado',
+		'botonStart',
+		'juegoSistema',
+		'relojSistema',
+		'botonesSistema'
 	],
 	#category : 'ProyectoSuperTateti',
 	#package : 'ProyectoSuperTateti'
@@ -20,52 +23,29 @@ SuperTatetiMorph class >> open [
 
 ]
 
-{ #category : 'updating' }
-SuperTatetiMorph >> actualizarBotonDeTablerito: indiceTablerito casilla: indiceCasilla [
-    | btn valor texto |
-
-    btn := (botones at: indiceTablerito) at: indiceCasilla.
-
-    "Valor que tiene esa casilla en el modelo (#x, #o o nil)"
-    valor := juego valorEnTablerito: indiceTablerito casilla: indiceCasilla.
-
-    "Limpio cualquier texto viejo que tenga el botón"
-    btn submorphs do: [:m | m delete].
-
-    "Fondo blanco siempre"
-    btn color: Color white.
-
-    "Si hay X u O, creo un StringMorph y lo centro dentro del botón"
-    valor ifNotNil: [
-        texto := StringMorph contents: (valor asString asUppercase).
-        texto color: Color black.
-        btn addMorph: texto.
-        texto center: btn center ].
+{ #category : 'helpers' }
+SuperTatetiMorph >> actualizarTextoTiempo [
+    relojSistema actualizarTextoTiempo.
 
 ]
 
 { #category : 'updating' }
 SuperTatetiMorph >> actualizarVista [
-    "Dibuja X/O y fondo blanco en todas las casillas"
-    1 to: 9 do: [:t |
-        1 to: 9 do: [:c |
-            self actualizarBotonDeTablerito: t casilla: c ] ].
-
-    "Si la ayuda está activa, resalta donde se puede jugar"
-    (ayudaActiva == true) ifTrue: [
-        self resaltarMovimientosValidos ]
+    "Delegamos el redibujado del tablero al panel especializado."
+    juegoSistema ifNotNil: [
+        juegoSistema actualizarVistaConAyuda: ayudaActiva ].
 
 ]
 
 { #category : 'helpers' }
 SuperTatetiMorph >> anunciarGanador [
-    juego ganador
+    juegoSistema ganador
         ifNil: [
             UIManager default inform:
                 'Fin del juego: empate o todos los tableritos cerrados.' ]
         ifNotNil: [
             UIManager default inform:
-                'Ganador: ', juego ganador asString asUppercase ].
+                'Ganador: ', juegoSistema ganador asString asUppercase ].
 
 ]
 
@@ -81,116 +61,105 @@ SuperTatetiMorph >> app: unaApp [
 
 ]
 
+{ #category : 'accessing' }
+SuperTatetiMorph >> botonStart [
+    ^ botonStart
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiMorph >> botonStart: unBoton [
+    botonStart := unBoton
+
+]
+
 { #category : 'events' }
 SuperTatetiMorph >> clicEnTablerito: indiceTablerito casilla: indiceCasilla [
-    Transcript show: 'Click en ', indiceTablerito printString, '-', indiceCasilla printString; cr.
+    | estadoAntes estadoDespues ganadorTablerito oponente perdedor |
 
-    [ juego jugarEnTablerito: indiceTablerito casilla: indiceCasilla ]
+    "Si ya se acabó el tiempo de X u O, cerramos por tiempo."
+    ((relojSistema relojX termino) or: [ relojSistema relojO termino ]) ifTrue: [
+        perdedor := (relojSistema relojX termino)
+            ifTrue: [ #x ]
+            ifFalse: [ #o ].
+        ^ self finPorTiempoDe: perdedor
+    ].
+
+    "Si el juego ya terminó (por tablero o por tiempo), ignoramos el click."
+    juegoSistema juegoTerminado ifTrue: [
+        self anunciarGanador.
+        ^ self
+    ].
+
+    "Si el juego todavía no fue iniciado con Start, no permitimos jugar."
+    juegoIniciado ifFalse: [
+        self informarQueDebeIniciar.
+        ^ self
+    ].
+
+    "Si el reloj está pausado (Stop), no permitimos jugar."
+    relojSistema corriendo ifFalse: [
+        UIManager default inform: 'El reloj está pausado. Presiona Start para seguir jugando.'.
+        ^ self
+    ].
+
+    "Recordamos el estado del tablerito antes de la jugada."
+    estadoAntes := juegoSistema estadoDeTablerito: indiceTablerito.
+
+    "Intentamos jugar la jugada en el modelo, capturando posibles errores."
+    [ juegoSistema jugarEnTablerito: indiceTablerito casilla: indiceCasilla ]
         on: Error
-        do: [:ex | UIManager default inform: ex messageText ].
+        do: [:ex | ^ UIManager default inform: ex messageText ].
 
+    "Actualizamos la vista del tablero."
     self actualizarVista.
 
-    (juego juegoTerminado) ifTrue: [
-        self anunciarGanador ].
+    "Si el juego terminó (por tablero), detenemos relojes y anunciamos ganador."
+    juegoSistema juegoTerminado ifTrue: [
+        self detenerReloj.
+        juegoIniciado := false.
+        botonStart ifNotNil: [
+            botonStart label: 'Start'.
+            botonStart extent: 100@40
+        ].
+        ^ self anunciarGanador
+    ].
+
+    "Revisamos si con esta jugada se capturó el tablerito del tablero grande."
+    estadoDespues := juegoSistema estadoDeTablerito: indiceTablerito.
+    ((#(#x #o) includes: estadoDespues) and: [ estadoDespues ~= estadoAntes ]) ifTrue: [
+        "El ganador del tablerito es estadoDespues; penalizamos al oponente."
+        ganadorTablerito := estadoDespues.
+        oponente := (ganadorTablerito = #x)
+            ifTrue: [ #o ]
+            ifFalse: [ #x ].
+        relojSistema penalizarA: oponente segundos: 10.
+        self actualizarTextoTiempo
+    ].
+
+    "Si el juego sigue, alternamos el jugador activo del reloj."
+    relojSistema alternarJugador.
+
+]
+
+{ #category : 'initialization' }
+SuperTatetiMorph >> configurarConJuegoSistema: unJuegoSistema
+        relojSistema: unRelojSistema
+        botonesSistema: unBotonesSistema [ 
+
+    juegoSistema := unJuegoSistema.
+    relojSistema := unRelojSistema.
+    botonesSistema := unBotonesSistema.
+
+    "Conectar relaciones internas."
+    juegoSistema configurarController: self.
+    botonesSistema controller: self.
 
 ]
 
 { #category : 'building' }
 SuperTatetiMorph >> crearBoardPanel [
-    | boardPanel |
-    boardPanel := Morph new.
-    boardPanel layoutPolicy: TableLayout new.
-    boardPanel listDirection: #topToBottom.
-    boardPanel hResizing: #shrinkWrap;
-               vResizing: #shrinkWrap;
-               cellInset: 0.
-    boardPanel color: Color veryLightGray.
-
-    self inicializarBotones.
-
-    1 to: 9 do: [:row |
-        boardPanel addMorph: (self crearFila: row).
-        (#(3 6) includes: row) ifTrue: [
-            boardPanel addMorph: self crearGapFila ] ].
-
-    ^ boardPanel
-]
-
-{ #category : 'building' }
-SuperTatetiMorph >> crearBotonConLabel: label action: selector [
-    ^ SimpleButtonMorph new
-        label: label;
-        extent: 100@40;
-        color: Color lightGray;
-        borderWidth: 1; borderColor: Color black;
-        target: self; actionSelector: selector;
-        yourself
-]
-
-{ #category : 'building' }
-SuperTatetiMorph >> crearBotonEnFila: row columna: col [
- | tIndex cIndex btn |
-    tIndex := ((row - 1) // 3) * 3 + ((col - 1) // 3) + 1.
-    cIndex := ((row - 1) \\ 3) * 3 + ((col - 1) \\ 3) + 1.
-
-    btn := SimpleButtonMorph new.
-    btn extent: 30@30.
-    btn hResizing: #rigid; vResizing: #rigid.
-    btn color: Color white.
-    btn borderWidth: 1; borderColor: Color black.
-    btn target: self; actionSelector: #clicEnTablerito:casilla:; arguments: {tIndex. cIndex}.
-
-    (botones at: tIndex) at: cIndex put: btn.
-    ^ btn
-
-]
-
-{ #category : 'building' }
-SuperTatetiMorph >> crearFila: row [
-    | filaMorph |
-    filaMorph := Morph new.
-    filaMorph layoutPolicy: TableLayout new.
-    filaMorph listDirection: #leftToRight.
-    filaMorph hResizing: #shrinkWrap;
-              vResizing: #shrinkWrap;
-              cellInset: 0.
-
-    1 to: 9 do: [:col |
-        filaMorph addMorph: (self crearBotonEnFila: row columna: col).
-        (#(3 6) includes: col) ifTrue: [
-            filaMorph addMorph: self crearGapColumna ] ].
-
-    ^ filaMorph
-
-]
-
-{ #category : 'building' }
-SuperTatetiMorph >> crearGapColumna [
-    ^ Morph new
-        layoutPolicy: nil;
-        hResizing: #rigid;
-        vResizing: #rigid;
-        extent: 6@30;   "dale un poco más de ancho para que se note"
-        color: Color gray;   "color más visible"
-        borderWidth: 0;
-        yourself
-]
-
-{ #category : 'building' }
-SuperTatetiMorph >> crearGapFila [
-    | ancho |
-    "Calculamos el ancho total del tablero: 9 celdas de 30 + 2 gaps de columna"
-    ancho := (9 * 30) + (2 * 6).
-
-    ^ Morph new
-        layoutPolicy: nil;
-        hResizing: #rigid;
-        vResizing: #rigid;
-        extent: ancho @ 6;   "alto del gap horizontal"
-        color: Color gray;   "usa gris para confirmar que aparece"
-        borderWidth: 0;
-        yourself
+    ^ juegoSistema crearBoardPanel
 
 ]
 
@@ -211,107 +180,32 @@ SuperTatetiMorph >> crearMainPanel [
 ]
 
 { #category : 'building' }
-SuperTatetiMorph >> crearPanelTiempoConTitulo: titulo color: unColor [
-    | panel marcoTiempo etiquetaTiempo etiquetaTitulo |
-
-    panel := Morph new.
-    panel layoutPolicy: TableLayout new.
-    panel listDirection: #topToBottom.
-    panel hResizing: #shrinkWrap;
-           vResizing: #shrinkWrap;
-           cellInset: 5.
-    panel color: Color veryLightGray.
-
-    "Rectángulo donde más adelante irá el tiempo"
-    marcoTiempo := Morph new.
-    marcoTiempo layoutPolicy: TableLayout new.
-    marcoTiempo hResizing: #shrinkWrap;
-                vResizing: #shrinkWrap.
-    marcoTiempo color: unColor.
-    marcoTiempo borderWidth: 2;
-                borderColor: Color black.
-
-    etiquetaTiempo := StringMorph contents: '00:00'.
-    etiquetaTiempo color: Color black.
-    marcoTiempo addMorph: etiquetaTiempo.
-
-    "Texto de abajo: time: X / time: O"
-    etiquetaTitulo := StringMorph contents: titulo.
-    etiquetaTitulo color: Color black.
-
-    panel addMorph: marcoTiempo.
-    panel addMorph: etiquetaTitulo.
-
-    ^ panel
+SuperTatetiMorph >> crearPanelTiemposJugadores [
+    ^ relojSistema crearPanelTiemposJugadores
 
 ]
 
 { #category : 'building' }
-SuperTatetiMorph >> crearPanelTiempos [
-    | panel |
-
-    panel := Morph new.
-    panel layoutPolicy: TableLayout new.
-    panel listDirection: #leftToRight.
-    panel hResizing: #shrinkWrap;
-           vResizing: #shrinkWrap;
-           cellInset: 40.   "separación horizontal entre X y O"
-    panel color: Color veryLightGray.
-
-    panel addMorph: (self crearPanelTiempoConTitulo: 'time: X' color: Color cyan).
-    panel addMorph: (self crearPanelTiempoConTitulo: 'time: O' color: Color white).
-
-    ^ panel
-
-]
-
-{ #category : 'building' }
-SuperTatetiMorph >> crearTablero [ 
-    | topBar boardPanel panelTiempos |
+SuperTatetiMorph >> crearTablero [
+    "Arma el layout principal del juego: barra arriba, tablero al centro y tiempos abajo."
+    | topBar boardPanel panelTiemposLocal |
 
     mainPanel := self crearMainPanel.
-    panelTiempos := self crearPanelTiempos.
-    boardPanel := self crearBoardPanel.
     topBar := self crearTopBarPanel.
+    boardPanel := self crearBoardPanel.
+    panelTiemposLocal := self crearPanelTiemposJugadores.
 
-    mainPanel addMorph: panelTiempos.
-    mainPanel addMorph: boardPanel.
     mainPanel addMorph: topBar.
+    mainPanel addMorph: boardPanel.
+    mainPanel addMorph: panelTiemposLocal.
 
-    window addMorph: mainPanel frame: (0@0 corner: 1@1)
-
+    window addMorph: mainPanel frame: (0@0 corner: 1@1).
 
 ]
 
 { #category : 'building' }
-SuperTatetiMorph >> crearTopBarPanel [
-    | topPanel botonReturn botonHelp botonStart botonLeave |
-
-    topPanel := Morph new.
-    topPanel layoutPolicy: TableLayout new.
-    topPanel listDirection: #leftToRight.
-    topPanel hResizing: #shrinkWrap;
-              vResizing: #shrinkWrap;
-              cellInset: 5.
-    topPanel color: Color lightGray.
-
-    botonReturn := self crearBotonConLabel: 'Return'
-        action: (returnHabilitado
-            ifTrue: [ #returnPresionado ]
-            ifFalse: [ #returnDeshabilitado ]).
-
-    botonHelp   := self crearBotonConLabel: 'Help'   action: #helpPresionado.
-    botonStart  := self crearBotonConLabel: 'Start'  action: #funcionNoImplementada.
-    botonLeave  := self crearBotonConLabel: 'Leave'  action: #volverAlInicio.
-
-    topPanel
-        addMorph: botonLeave;
-        addMorph: botonStart;
-        addMorph: botonHelp;
-        addMorph: botonReturn.
-
-    ^ topPanel
-
+SuperTatetiMorph >> crearTopBarPanel [ 
+    ^ botonesSistema crearTopBarPanel
 ]
 
 { #category : 'building' }
@@ -322,14 +216,45 @@ SuperTatetiMorph >> crearVentana [
 ]
 
 { #category : 'helpers' }
-SuperTatetiMorph >> funcionNoImplementada [
-    UIManager default inform: 'Esta función todavía no se implementó.'.
+SuperTatetiMorph >> detenerReloj [
+    relojSistema detener.
+
+]
+
+{ #category : 'helpers' }
+SuperTatetiMorph >> finPorTiempoDe: unSimbolo [
+    | ganadorPorTiempo mensaje |
+
+    juegoSistema juegoTerminado ifTrue: [ ^ self ].
+
+    "Detenemos reloj y marcamos que ya no se puede seguir jugando."
+    self detenerReloj.
+    juegoIniciado := false.
+
+    "El ganador es el oponente del que se quedó sin tiempo."
+    ganadorPorTiempo := (unSimbolo = #x)
+        ifTrue: [ #o ]
+        ifFalse: [ #x ].
+
+    "Marcamos el ganador en el modelo."
+    juegoSistema ganador: ganadorPorTiempo.
+
+    "Volvemos el botón a 'Start' con tamaño fijo."
+    botonStart ifNotNil: [
+        botonStart label: 'Start'.
+        botonStart extent: 100@40
+    ].
+
+    "Mostramos el mensaje solo una vez."
+    mensaje := 'Se terminó el tiempo de ', unSimbolo asString asUppercase,
+               '. Gana ', ganadorPorTiempo asString asUppercase, ' por tiempo.'.
+    UIManager default inform: mensaje.
 
 ]
 
 { #category : 'events' }
 SuperTatetiMorph >> helpPresionado [
-    (juego juegoTerminado) ifTrue: [
+    juegoSistema juegoTerminado ifTrue: [
         UIManager default inform: 'El juego ya terminó.'.
         ^ self
     ].
@@ -342,26 +267,43 @@ SuperTatetiMorph >> helpPresionado [
 
 ]
 
-{ #category : 'building' }
-SuperTatetiMorph >> inicializarBotones [
-    botones := Array new: 9.
-    1 to: 9 do: [:t | botones at: t put: (Array new: 9) ].
+{ #category : 'helpers' }
+SuperTatetiMorph >> informarQueDebeIniciar [
+    "Muestra un mensaje indicando que hay que presionar Start antes de jugar."
+    UIManager default inform: 'Debes presionar Start para comenzar el juego.'.
+
+]
+
+{ #category : 'helpers' }
+SuperTatetiMorph >> iniciarReloj [
+    relojSistema iniciarRelojParaJuego: juegoSistema conCallback: [ self ticRelojes ].
+
 ]
 
 { #category : 'initialization' }
 SuperTatetiMorph >> initialize [ 
     super initialize.
-    returnHabilitado := true.   "por defecto, si abrís con openInWorld"
-    ayudaActiva := false.       "la ayuda empieza apagada"
+
+    "Flags de estado inicial."
+    returnHabilitado := true.
+    ayudaActiva := true.
+    juegoIniciado := false.
+
+    "El botón Start se asigna desde la barra superior."
+    botonStart := nil.
+
+    "Los sistemas se inyectan desde afuera (App)."
+    juegoSistema := nil.
+    relojSistema := nil.
+    botonesSistema := nil.
 
 ]
 
 { #category : 'initialization' }
-SuperTatetiMorph >> instalarEnVentana: unaVentana [ 
-    juego := SuperTateti new.
+SuperTatetiMorph >> instalarEnVentana: unaVentana [
     window := unaVentana.
     self crearTablero.
-    self actualizarVista
+    self actualizarVista.
 
 ]
 
@@ -372,22 +314,41 @@ SuperTatetiMorph >> mainPanel [
 
 { #category : 'initialization' }
 SuperTatetiMorph >> openInWorld [
-    juego := SuperTateti new.
     self crearVentana.
-    self crearTablero .
+    self crearTablero.
     self actualizarVista.
     window openInWorld.
 
 ]
 
-{ #category : 'helpers' }
-SuperTatetiMorph >> resaltarMovimientosValidos [
-    1 to: 9 do: [:t |
-        1 to: 9 do: [:c |
-            (juego esMovimientoValidoEnTablerito: t casilla: c) ifTrue: [
-                | btn |
-                btn := (botones at: t) at: c.
-                btn color: Color yellow ] ] ].
+{ #category : 'events' }
+SuperTatetiMorph >> resetPresionado [
+    "Reinicia la partida actual sin volver al menú."
+
+    "Detenemos cualquier reloj que esté andando."
+    self detenerReloj.
+
+    "Marcamos que el juego ya no está en curso."
+    juegoIniciado := false.
+
+    "Reiniciamos el modelo de juego (tableros vacíos, X comienza, etc.)."
+    juegoSistema reiniciar.
+
+    "Reiniciamos ambos relojes y dejamos a X como jugador activo."
+    relojSistema resetearAmbos.
+
+    "La ayuda de casillas válidas queda siempre activada."
+    ayudaActiva := true.
+
+    "Volvemos el botón a 'Start' con tamaño fijo."
+    botonStart ifNotNil: [
+        botonStart label: 'Start'.
+        botonStart extent: 100@40
+    ].
+
+    "Actualizamos tiempos y tablero en pantalla."
+    self actualizarTextoTiempo.
+    self actualizarVista.
 
 ]
 
@@ -408,17 +369,90 @@ SuperTatetiMorph >> returnHabilitado: unBooleano [
 ]
 
 { #category : 'events' }
-SuperTatetiMorph >> returnPresionado [
-    [ juego deshacerUltimaJugada ]
+SuperTatetiMorph >> returnPresionado [ 
+    "Deshace la última jugada, solo si el juego sigue en curso."
+
+    juegoSistema juegoTerminado ifTrue: [
+        UIManager default inform: 'El juego ya terminó. No puedes deshacer jugadas.'.
+        ^ self
+    ].
+
+    [ juegoSistema deshacerUltimaJugada ]
         on: Error
-        do: [:ex | UIManager default inform: ex messageText ].
+        do: [:ex | ^ UIManager default inform: ex messageText ].
+
+    "Sincronizamos el jugador activo del reloj con el del juego."
+    relojSistema jugadorActivo: juegoSistema jugadorActual.
 
     self actualizarVista.
+]
+
+{ #category : 'events' }
+SuperTatetiMorph >> startPresionado [
+    "Maneja el botón Start/Stop para el sistema de relojes de turnos."
+
+    "Si el juego ya terminó (por tablero o por tiempo), solo mostramos un mensaje."
+    juegoSistema juegoTerminado ifTrue: [
+        UIManager default inform: 'El juego ya terminó. Debes volver al menú para iniciar una nueva partida.'.
+        ^ self
+    ].
+
+    "Si el reloj ya está corriendo → lo pausamos (Stop → Start)."
+    relojSistema corriendo ifTrue: [
+        self detenerReloj.
+        botonStart ifNotNil: [
+            botonStart label: 'Start'.
+            botonStart extent: 100@40
+        ].
+        ^ self
+    ].
+
+    "Si aún no se inició el juego, reseteamos los relojes y marcamos que está iniciado."
+    juegoIniciado ifFalse: [
+        juegoIniciado := true.
+        relojSistema resetearAmbos.
+        self actualizarTextoTiempo
+    ].
+
+    "Aseguramos que el jugador activo del reloj coincida con el jugador del juego."
+    relojSistema jugadorActivo: juegoSistema jugadorActual.
+
+    "Arrancamos el proceso de tiempo y ponemos el botón en Stop, SIN que cambie de tamaño."
+    botonStart ifNotNil: [
+        botonStart label: 'Stop'.
+        botonStart extent: 100@40
+    ].
+    self iniciarReloj.
+
+]
+
+{ #category : 'helpers' }
+SuperTatetiMorph >> ticRelojes [
+    "Pide al RelojTurnos que reste un segundo al jugador activo y
+    actualiza la interfaz. Si alguien se queda sin tiempo, termina el juego."
+
+    | quienPerdio |
+
+    quienPerdio := relojSistema tic.
+    self actualizarTextoTiempo.
+
+    "Si nadie se quedó sin tiempo, no hacemos nada más."
+    quienPerdio ifNil: [ ^ self ].
+
+    "Si alguien quedó sin tiempo, delegamos al helper."
+    self finPorTiempoDe: quienPerdio.
 
 ]
 
 { #category : 'events' }
 SuperTatetiMorph >> volverAlInicio [
-    app volverAlMenu
+    "Vuelve al menú principal deteniendo relojes y reseteando flags."
+    self detenerReloj.
+    juegoIniciado := false.
+    botonStart ifNotNil: [
+        botonStart label: 'Start'.
+        botonStart extent: 100@40
+    ].
+    app volverAlMenu.
 
 ]

@@ -105,8 +105,23 @@ SuperTateti >> esMovimientoValidoEnTablerito: indiceTablerito casilla: indiceCas
 ]
 
 { #category : 'accessing' }
+SuperTateti >> estadoDeTablerito: indiceTablerito [
+    "Devuelve el estado (#enJuego, #empate, #x o #o) del tablerito indicado."
+    ^ estadoTableritos at: indiceTablerito
+
+]
+
+{ #category : 'accessing' }
 SuperTateti >> ganador [
+    "Devuelve el ganador actual del juego (#x, #o o nil si aún no hay ganador)."
     ^ ganador
+
+]
+
+{ #category : 'accessing' }
+SuperTateti >> ganador: unSimbolo [
+    "Fija el ganador del juego (#x o #o). También puede ser nil para reiniciar."
+    ganador := unSimbolo.
 
 ]
 
@@ -158,6 +173,20 @@ SuperTateti >> initialize [
 SuperTateti >> juegoTerminado [
     ^ ganador notNil
         or: [ self arregloLleno: estadoTableritos ].
+
+]
+
+{ #category : 'accessing' }
+SuperTateti >> jugadorActual [
+    "Devuelve el jugador actual (#x o #o)."
+    ^ jugadorActual
+
+]
+
+{ #category : 'accessing' }
+SuperTateti >> jugadorActual: unSimbolo [
+    "Fija el jugador actual (#x o #o)."
+    jugadorActual := unSimbolo
 
 ]
 
