@@ -16,21 +16,6 @@ SuperTatetiJuegoSistema >> actualizarVistaConAyuda: unBooleano [
 
 ]
 
-{ #category : 'accessing' }
-SuperTatetiJuegoSistema >> botonStart [
-    uiController ifNotNil: [ ^ uiController botonStart ].
-    ^ nil
-
-]
-
-{ #category : 'accessing' }
-SuperTatetiJuegoSistema >> botonStart: unBoton [
-    uiController ifNotNil: [
-        uiController botonStart: unBoton
-    ].
-
-]
-
 { #category : 'events' }
 SuperTatetiJuegoSistema >> clicEnTablerito: indiceTablerito casilla: indiceCasilla [
     uiController ifNotNil: [
@@ -40,9 +25,9 @@ SuperTatetiJuegoSistema >> clicEnTablerito: indiceTablerito casilla: indiceCasil
 ]
 
 { #category : 'initialization' }
-SuperTatetiJuegoSistema >> configurarController: unMorph [
-    uiController := unMorph.
-    tableroPanel controller: self.
+SuperTatetiJuegoSistema >> configurarController: unMorph [ 
+    "El controller del tablero ahora es directamente el morph (SuperTatetiMorph)."
+    tableroPanel controller: unMorph.
     tableroPanel juego: juego.
 ]
 
@@ -52,10 +37,10 @@ SuperTatetiJuegoSistema >> crearBoardPanel [
 
 ]
 
-{ #category : 'accessing' }
-SuperTatetiJuegoSistema >> deshacerUltimaJugada [
+{ #category : 'events' }
+SuperTatetiJuegoSistema >> deshacerUltimaJugada [ 
+    "Pide al modelo que deshaga la última jugada."
     ^ juego deshacerUltimaJugada
-
 ]
 
 { #category : 'accessing' }
@@ -114,51 +99,6 @@ SuperTatetiJuegoSistema >> reiniciar [
 
 ]
 
-{ #category : 'events' }
-SuperTatetiJuegoSistema >> resetPresionado [
-    uiController ifNotNil: [
-        ^ uiController resetPresionado
-    ].
-
-]
-
-{ #category : 'events' }
-SuperTatetiJuegoSistema >> returnDeshabilitado [
-    uiController ifNotNil: [
-        ^ uiController returnDeshabilitado
-    ].
-]
-
-{ #category : 'accessing' }
-SuperTatetiJuegoSistema >> returnHabilitado [
-    uiController ifNotNil: [ ^ uiController returnHabilitado ].
-    ^ true  "valor por defecto si por algún motivo no hay uiController"
-
-]
-
-{ #category : 'accessing' }
-SuperTatetiJuegoSistema >> returnHabilitado: unBooleano [
-    uiController ifNotNil: [
-        uiController returnHabilitado: unBooleano
-    ].
-
-]
-
-{ #category : 'events' }
-SuperTatetiJuegoSistema >> returnPresionado [
-    uiController ifNotNil: [
-        ^ uiController returnPresionado
-    ].
-]
-
-{ #category : 'events' }
-SuperTatetiJuegoSistema >> startPresionado [
-    uiController ifNotNil: [
-        ^ uiController startPresionado
-    ].
-
-]
-
 { #category : 'accessing' }
 SuperTatetiJuegoSistema >> uiController [
     ^ uiController
@@ -167,11 +107,4 @@ SuperTatetiJuegoSistema >> uiController [
 { #category : 'accessing' }
 SuperTatetiJuegoSistema >> uiController: unMorph [
     uiController := unMorph
-]
-
-{ #category : 'events' }
-SuperTatetiJuegoSistema >> volverAlInicio [
-    uiController ifNotNil: [
-        ^ uiController volverAlInicio
-    ].
 ]

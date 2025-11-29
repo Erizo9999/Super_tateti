@@ -38,7 +38,9 @@ SuperTatetiApp >> crearVentana [
 ]
 
 { #category : 'events' }
-SuperTatetiApp >> jugar1vs1 [
+SuperTatetiApp >> jugar1vs1 [ 
+    | juegoSistema relojSistema botonesSistema |
+
     contenidoActual ifNotNil: [
         window removeMorph: contenidoActual.
         contenidoActual := nil
@@ -47,14 +49,24 @@ SuperTatetiApp >> jugar1vs1 [
     juegoMorph := SuperTatetiMorph new.
     juegoMorph app: self.
     juegoMorph returnHabilitado: true.
+
+    juegoSistema := SuperTatetiJuegoSistema new.
+    relojSistema := SuperTatetiRelojSistema new.
+    botonesSistema := SuperTatetiBotonesSistema new.
+
+    juegoMorph
+        configurarConJuegoSistema: juegoSistema
+        relojSistema: relojSistema
+        botonesSistema: botonesSistema.
+
     juegoMorph instalarEnVentana: window.
-
     contenidoActual := juegoMorph mainPanel
-
 ]
 
 { #category : 'events' }
-SuperTatetiApp >> jugar1vsPC [
+SuperTatetiApp >> jugar1vsPC [ 
+    | juegoSistema relojSistema botonesSistema |
+
     contenidoActual ifNotNil: [
         window removeMorph: contenidoActual.
         contenidoActual := nil
@@ -63,10 +75,18 @@ SuperTatetiApp >> jugar1vsPC [
     juegoMorph := SuperTatetiVsPcMorph new.
     juegoMorph app: self.
     juegoMorph returnHabilitado: false.
+
+    juegoSistema := SuperTatetiJuegoSistema new.
+    relojSistema := SuperTatetiRelojSistema new.
+    botonesSistema := SuperTatetiBotonesSistema new.
+
+    juegoMorph
+        configurarConJuegoSistema: juegoSistema
+        relojSistema: relojSistema
+        botonesSistema: botonesSistema.
+
     juegoMorph instalarEnVentana: window.
-
     contenidoActual := juegoMorph mainPanel
-
 ]
 
 { #category : 'building' }

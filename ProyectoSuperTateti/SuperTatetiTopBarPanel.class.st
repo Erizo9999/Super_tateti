@@ -53,8 +53,12 @@ SuperTatetiTopBarPanel >> crearTopBarPanel [
 
     "Selector de acción para Return según la configuración del controller."
     accionReturn := (controller returnHabilitado
-        ifTrue: [ #returnPresionado ]
-        ifFalse: [ #returnDeshabilitado ]).
+    ifTrue: [ #returnPresionado ]
+    ifFalse: [ #returnDeshabilitado ]).
+
+	 "Botón Start/Stop (guardamos referencia en el controller de botones)."
+	 botonStartLocal := self crearBotonConLabel: 'Start' action: #startPresionado.
+	 controller botonStart: botonStartLocal.
 
     "Botón Return."
     botonReturn := self crearBotonConLabel: 'Return' action: accionReturn.

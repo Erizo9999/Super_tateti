@@ -10,8 +10,8 @@ Class {
 		'juegoIniciado',
 		'botonStart',
 		'juegoSistema',
-		'topBarPanel',
-		'relojSistema'
+		'relojSistema',
+		'botonesSistema'
 	],
 	#category : 'ProyectoSuperTateti',
 	#package : 'ProyectoSuperTateti'
@@ -142,6 +142,21 @@ SuperTatetiMorph >> clicEnTablerito: indiceTablerito casilla: indiceCasilla [
 
 ]
 
+{ #category : 'initialization' }
+SuperTatetiMorph >> configurarConJuegoSistema: unJuegoSistema
+        relojSistema: unRelojSistema
+        botonesSistema: unBotonesSistema [ 
+
+    juegoSistema := unJuegoSistema.
+    relojSistema := unRelojSistema.
+    botonesSistema := unBotonesSistema.
+
+    "Conectar relaciones internas."
+    juegoSistema configurarController: self.
+    botonesSistema controller: self.
+
+]
+
 { #category : 'building' }
 SuperTatetiMorph >> crearBoardPanel [
     ^ juegoSistema crearBoardPanel
@@ -189,9 +204,8 @@ SuperTatetiMorph >> crearTablero [
 ]
 
 { #category : 'building' }
-SuperTatetiMorph >> crearTopBarPanel [
-    ^ topBarPanel crearTopBarPanel
-
+SuperTatetiMorph >> crearTopBarPanel [ 
+    ^ botonesSistema crearTopBarPanel
 ]
 
 { #category : 'building' }
@@ -267,28 +281,22 @@ SuperTatetiMorph >> iniciarReloj [
 ]
 
 { #category : 'initialization' }
-SuperTatetiMorph >> initialize [
-    "Inicializa el morph del juego y los sistemas auxiliares."
+SuperTatetiMorph >> initialize [ 
     super initialize.
 
-    "Configuración general de la interfaz."
+    "Flags de estado inicial."
     returnHabilitado := true.
     ayudaActiva := true.
     juegoIniciado := false.
 
-    "Sistema de juego (modelo + tablero)."
-    juegoSistema := SuperTatetiJuegoSistema new.
-    juegoSistema configurarController: self.
-
-    "Sistema de reloj (maneja RelojTurnos + panel de tiempos)."
-    relojSistema := SuperTatetiRelojSistema new.
-
-    "Referencia al botón Start (se asigna desde la top bar)."
+    "El botón Start se asigna desde la barra superior."
     botonStart := nil.
 
-    "Panel especializado para la barra superior."
-    topBarPanel := SuperTatetiTopBarPanel new.
-    topBarPanel controller: juegoSistema.
+    "Los sistemas se inyectan desde afuera (App)."
+    juegoSistema := nil.
+    relojSistema := nil.
+    botonesSistema := nil.
+
 ]
 
 { #category : 'initialization' }
@@ -361,10 +369,9 @@ SuperTatetiMorph >> returnHabilitado: unBooleano [
 ]
 
 { #category : 'events' }
-SuperTatetiMorph >> returnPresionado [
+SuperTatetiMorph >> returnPresionado [ 
     "Deshace la última jugada, solo si el juego sigue en curso."
 
-    "Si el juego ya terminó, no permitimos deshacer."
     juegoSistema juegoTerminado ifTrue: [
         UIManager default inform: 'El juego ya terminó. No puedes deshacer jugadas.'.
         ^ self
@@ -372,10 +379,12 @@ SuperTatetiMorph >> returnPresionado [
 
     [ juegoSistema deshacerUltimaJugada ]
         on: Error
-        do: [:ex | UIManager default inform: ex messageText ].
+        do: [:ex | ^ UIManager default inform: ex messageText ].
+
+    "Sincronizamos el jugador activo del reloj con el del juego."
+    relojSistema jugadorActivo: juegoSistema jugadorActual.
 
     self actualizarVista.
-
 ]
 
 { #category : 'events' }
