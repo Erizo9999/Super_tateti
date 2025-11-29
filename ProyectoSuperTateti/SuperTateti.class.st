@@ -1,3 +1,6 @@
+"
+clase está haciendo demasiadas cosas a la vez: maneja estado global, lógica de sub‑tableros, verificación de ganador y hasta pruebas
+"
 Class {
 	#name : 'SuperTateti',
 	#superclass : 'Object',
