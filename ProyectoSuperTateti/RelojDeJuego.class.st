@@ -83,6 +83,15 @@ RelojDeJuego >> resetear [
 ]
 
 { #category : 'updating' }
+RelojDeJuego >> restarSegundos: unNumero [
+    "Resta unNumero segundos al tiempo restante, sin bajar de 0."
+    tiempoRestante := tiempoRestante - unNumero.
+    tiempoRestante < 0 ifTrue: [
+        tiempoRestante := 0 ].
+
+]
+
+{ #category : 'updating' }
 RelojDeJuego >> siguienteDuracion [
     "Pasa a la siguiente duración de la lista (1 → 2 → 5 → 10 minutos y vuelve a 1)."
     indiceActual := indiceActual + 1.

@@ -67,6 +67,29 @@ RelojTurnos >> jugadorActivo [
 ]
 
 { #category : 'accessing' }
+RelojTurnos >> jugadorActivo: unSimbolo [
+    "Fija quién es el jugador activo (#x o #o) para el reloj de turnos."
+    jugadorActivo := unSimbolo.
+
+]
+
+{ #category : 'game_logic' }
+RelojTurnos >> penalizarA: unSimbolo segundos: unNumero [
+    "Resta segundos al reloj del jugador indicado (#x o #o)."
+
+    unSimbolo = #x ifTrue: [
+        relojX restarSegundos: unNumero.
+        ^ self
+    ].
+
+    unSimbolo = #o ifTrue: [
+        relojO restarSegundos: unNumero.
+        ^ self
+    ].
+
+]
+
+{ #category : 'accessing' }
 RelojTurnos >> relojO [
     ^ relojO.
 
