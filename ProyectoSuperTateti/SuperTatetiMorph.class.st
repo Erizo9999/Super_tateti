@@ -155,6 +155,12 @@ SuperTatetiMorph >> clicEnTablerito: indiceTablerito casilla: indiceCasilla [
         ^ self
     ].
 
+    "Si el reloj está pausado (Stop), no permitimos jugar."
+    relojTurnos corriendo ifFalse: [
+        UIManager default inform: 'El reloj está pausado. Presiona Start para seguir jugando.'.
+        ^ self
+    ].
+
     "Recordamos el estado del tablerito antes de la jugada."
     estadoAntes := juego estadoDeTablerito: indiceTablerito.
 
