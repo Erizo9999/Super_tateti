@@ -60,7 +60,7 @@ SuperTatetiApp >> jugar1vsPC [
         contenidoActual := nil
     ].
 
-    juegoMorph := SuperTatetiMorph new.
+    juegoMorph := SuperTatetiVsPcMorph new.
     juegoMorph app: self.
     juegoMorph returnHabilitado: false.
     juegoMorph instalarEnVentana: window.
