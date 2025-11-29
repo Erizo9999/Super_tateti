@@ -16,10 +16,10 @@ SuperTatetiVsPcMorph >> clicEnTablerito: indiceTablerito casilla: indiceCasilla 
     super clicEnTablerito: indiceTablerito casilla: indiceCasilla.
 
     "Si el juego terminó o el reloj está pausado, no hacemos nada más."
-    (juego juegoTerminado or: [ relojTurnos corriendo not ]) ifTrue: [ ^ self ].
+    (juegoSistema juegoTerminado or: [ relojSistema corriendo not ]) ifTrue: [ ^ self ].
 
     "Si ahora es el turno de la PC, dejamos que juegue."
-    (juego jugadorActual = simboloPc) ifTrue: [
+    (juegoSistema jugadorActual = simboloPc) ifTrue: [
         self jugarTurnoPc
     ].
 
@@ -38,12 +38,15 @@ SuperTatetiVsPcMorph >> initialize [
 SuperTatetiVsPcMorph >> jugarTurnoPc [
     "Hace que la PC juegue una jugada válida al azar usando una estrategia."
 
-    | mov tIndex cIndex |
+    | mov tIndex cIndex modelo |
 
-    (juego juegoTerminado) ifTrue: [ ^ self ].
-    (juego jugadorActual = simboloPc) ifFalse: [ ^ self ].
+    (juegoSistema juegoTerminado) ifTrue: [ ^ self ].
+    (juegoSistema jugadorActual = simboloPc) ifFalse: [ ^ self ].
 
-    mov := estrategiaPc elegirJugadaEn: juego.
+    "Obtenemos el modelo SuperTateti desde el sistema de juego."
+    modelo := juegoSistema juego.
+
+    mov := estrategiaPc elegirJugadaEn: modelo.
     mov isNil ifTrue: [ ^ self ].
 
     tIndex := mov first.

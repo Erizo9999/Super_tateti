@@ -2,19 +2,16 @@ Class {
 	#name : 'SuperTatetiMorph',
 	#superclass : 'Object',
 	#instVars : [
-		'juego',
 		'window',
 		'mainPanel',
 		'app',
 		'returnHabilitado',
 		'ayudaActiva',
 		'juegoIniciado',
-		'relojTurnos',
-		'procesoReloj',
 		'botonStart',
-		'relojPanel',
-		'tableroPanel',
-		'topBarPanel'
+		'juegoSistema',
+		'topBarPanel',
+		'relojSistema'
 	],
 	#category : 'ProyectoSuperTateti',
 	#package : 'ProyectoSuperTateti'
@@ -28,28 +25,27 @@ SuperTatetiMorph class >> open [
 
 { #category : 'helpers' }
 SuperTatetiMorph >> actualizarTextoTiempo [
-    "Delegamos la actualización de los textos del tiempo al panel de relojes."
-    relojPanel ifNotNil: [ relojPanel actualizarTextoTiempo ].
+    relojSistema actualizarTextoTiempo.
 
 ]
 
 { #category : 'updating' }
 SuperTatetiMorph >> actualizarVista [
     "Delegamos el redibujado del tablero al panel especializado."
-    tableroPanel ifNotNil: [
-        tableroPanel actualizarVistaConAyuda: ayudaActiva ].
+    juegoSistema ifNotNil: [
+        juegoSistema actualizarVistaConAyuda: ayudaActiva ].
 
 ]
 
 { #category : 'helpers' }
 SuperTatetiMorph >> anunciarGanador [
-    juego ganador
+    juegoSistema ganador
         ifNil: [
             UIManager default inform:
                 'Fin del juego: empate o todos los tableritos cerrados.' ]
         ifNotNil: [
             UIManager default inform:
-                'Ganador: ', juego ganador asString asUppercase ].
+                'Ganador: ', juegoSistema ganador asString asUppercase ].
 
 ]
 
@@ -79,22 +75,18 @@ SuperTatetiMorph >> botonStart: unBoton [
 
 { #category : 'events' }
 SuperTatetiMorph >> clicEnTablerito: indiceTablerito casilla: indiceCasilla [
-    "Maneja el clic en una casilla del tablero y alterna los relojes de turno.
-    Además, si se captura un tablerito (casilla del tablero grande), se
-    penaliza con 10 segundos menos al reloj del oponente."
-
     | estadoAntes estadoDespues ganadorTablerito oponente perdedor |
 
     "Si ya se acabó el tiempo de X u O, cerramos por tiempo."
-    ((relojTurnos relojX termino) or: [ relojTurnos relojO termino ]) ifTrue: [
-        perdedor := (relojTurnos relojX termino)
+    ((relojSistema relojX termino) or: [ relojSistema relojO termino ]) ifTrue: [
+        perdedor := (relojSistema relojX termino)
             ifTrue: [ #x ]
             ifFalse: [ #o ].
         ^ self finPorTiempoDe: perdedor
     ].
 
     "Si el juego ya terminó (por tablero o por tiempo), ignoramos el click."
-    juego juegoTerminado ifTrue: [
+    juegoSistema juegoTerminado ifTrue: [
         self anunciarGanador.
         ^ self
     ].
@@ -106,16 +98,16 @@ SuperTatetiMorph >> clicEnTablerito: indiceTablerito casilla: indiceCasilla [
     ].
 
     "Si el reloj está pausado (Stop), no permitimos jugar."
-    relojTurnos corriendo ifFalse: [
+    relojSistema corriendo ifFalse: [
         UIManager default inform: 'El reloj está pausado. Presiona Start para seguir jugando.'.
         ^ self
     ].
 
     "Recordamos el estado del tablerito antes de la jugada."
-    estadoAntes := juego estadoDeTablerito: indiceTablerito.
+    estadoAntes := juegoSistema estadoDeTablerito: indiceTablerito.
 
     "Intentamos jugar la jugada en el modelo, capturando posibles errores."
-    [ juego jugarEnTablerito: indiceTablerito casilla: indiceCasilla ]
+    [ juegoSistema jugarEnTablerito: indiceTablerito casilla: indiceCasilla ]
         on: Error
         do: [:ex | ^ UIManager default inform: ex messageText ].
 
@@ -123,7 +115,7 @@ SuperTatetiMorph >> clicEnTablerito: indiceTablerito casilla: indiceCasilla [
     self actualizarVista.
 
     "Si el juego terminó (por tablero), detenemos relojes y anunciamos ganador."
-    juego juegoTerminado ifTrue: [
+    juegoSistema juegoTerminado ifTrue: [
         self detenerReloj.
         juegoIniciado := false.
         botonStart ifNotNil: [
@@ -134,25 +126,25 @@ SuperTatetiMorph >> clicEnTablerito: indiceTablerito casilla: indiceCasilla [
     ].
 
     "Revisamos si con esta jugada se capturó el tablerito del tablero grande."
-    estadoDespues := juego estadoDeTablerito: indiceTablerito.
+    estadoDespues := juegoSistema estadoDeTablerito: indiceTablerito.
     ((#(#x #o) includes: estadoDespues) and: [ estadoDespues ~= estadoAntes ]) ifTrue: [
         "El ganador del tablerito es estadoDespues; penalizamos al oponente."
         ganadorTablerito := estadoDespues.
         oponente := (ganadorTablerito = #x)
             ifTrue: [ #o ]
             ifFalse: [ #x ].
-        relojTurnos penalizarA: oponente segundos: 10.
+        relojSistema penalizarA: oponente segundos: 10.
         self actualizarTextoTiempo
     ].
 
     "Si el juego sigue, alternamos el jugador activo del reloj."
-    relojTurnos alternarJugador.
+    relojSistema alternarJugador.
 
 ]
 
 { #category : 'building' }
 SuperTatetiMorph >> crearBoardPanel [
-    ^ tableroPanel crearBoardPanel
+    ^ juegoSistema crearBoardPanel
 
 ]
 
@@ -174,8 +166,7 @@ SuperTatetiMorph >> crearMainPanel [
 
 { #category : 'building' }
 SuperTatetiMorph >> crearPanelTiemposJugadores [
-    "Pide al panel de relojes que cree el panel de tiempos y lo devuelve."
-    ^ relojPanel crearPanelTiemposJugadores
+    ^ relojSistema crearPanelTiemposJugadores
 
 ]
 
@@ -212,22 +203,15 @@ SuperTatetiMorph >> crearVentana [
 
 { #category : 'helpers' }
 SuperTatetiMorph >> detenerReloj [
-    "Detiene el proceso del reloj (si existe) y pausa los relojes de turno."
-    procesoReloj ifNotNil: [
-        procesoReloj terminate.
-        procesoReloj := nil ].
-    relojTurnos detener.
+    relojSistema detener.
 
 ]
 
 { #category : 'helpers' }
 SuperTatetiMorph >> finPorTiempoDe: unSimbolo [
-    "Marca el fin del juego porque se quedó sin tiempo el jugador indicado
-    (#x o #o). Si el juego ya estaba terminado, no hace nada."
-
     | ganadorPorTiempo mensaje |
 
-    juego juegoTerminado ifTrue: [ ^ self ].
+    juegoSistema juegoTerminado ifTrue: [ ^ self ].
 
     "Detenemos reloj y marcamos que ya no se puede seguir jugando."
     self detenerReloj.
@@ -239,7 +223,7 @@ SuperTatetiMorph >> finPorTiempoDe: unSimbolo [
         ifFalse: [ #x ].
 
     "Marcamos el ganador en el modelo."
-    juego ganador: ganadorPorTiempo.
+    juegoSistema ganador: ganadorPorTiempo.
 
     "Volvemos el botón a 'Start' con tamaño fijo."
     botonStart ifNotNil: [
@@ -256,7 +240,7 @@ SuperTatetiMorph >> finPorTiempoDe: unSimbolo [
 
 { #category : 'events' }
 SuperTatetiMorph >> helpPresionado [
-    (juego juegoTerminado) ifTrue: [
+    juegoSistema juegoTerminado ifTrue: [
         UIManager default inform: 'El juego ya terminó.'.
         ^ self
     ].
@@ -278,23 +262,13 @@ SuperTatetiMorph >> informarQueDebeIniciar [
 
 { #category : 'helpers' }
 SuperTatetiMorph >> iniciarReloj [
-    "Crea el proceso que descuenta tiempo cada segundo mientras el reloj esté corriendo."
-    self detenerReloj.
-
-    relojTurnos iniciar.
-
-    procesoReloj := [
-        [ relojTurnos corriendo and: [ juego juegoTerminado not ] ] whileTrue: [
-            (Delay forSeconds: 1) wait.
-            self ticRelojes.
-        ].
-    ] fork.
+    relojSistema iniciarRelojParaJuego: juegoSistema conCallback: [ self ticRelojes ].
 
 ]
 
 { #category : 'initialization' }
 SuperTatetiMorph >> initialize [
-    "Inicializa el morph del juego y el sistema de relojes de turnos."
+    "Inicializa el morph del juego y los sistemas auxiliares."
     super initialize.
 
     "Configuración general de la interfaz."
@@ -302,37 +276,24 @@ SuperTatetiMorph >> initialize [
     ayudaActiva := true.
     juegoIniciado := false.
 
-    "Un solo objeto que maneja los dos relojes (X y O)."
-    relojTurnos := RelojTurnos new.
+    "Sistema de juego (modelo + tablero)."
+    juegoSistema := SuperTatetiJuegoSistema new.
+    juegoSistema configurarController: self.
 
-    "Todavía no hay proceso de reloj corriendo."
-    procesoReloj := nil.
+    "Sistema de reloj (maneja RelojTurnos + panel de tiempos)."
+    relojSistema := SuperTatetiRelojSistema new.
 
     "Referencia al botón Start (se asigna desde la top bar)."
     botonStart := nil.
 
-    "Panel especializado para mostrar los tiempos."
-    relojPanel := SuperTatetiRelojPanel new.
-    relojPanel relojTurnos: relojTurnos.
-
-    "Panel especializado para el tablero."
-    tableroPanel := SuperTatetiBoardPanel new.
-    tableroPanel controller: self.
-
     "Panel especializado para la barra superior."
     topBarPanel := SuperTatetiTopBarPanel new.
-    topBarPanel controller: self.
-
+    topBarPanel controller: juegoSistema.
 ]
 
 { #category : 'initialization' }
 SuperTatetiMorph >> instalarEnVentana: unaVentana [
-    juego := SuperTateti new.
     window := unaVentana.
-
-    "Conectamos el tablero con el modelo."
-    tableroPanel juego: juego.
-
     self crearTablero.
     self actualizarVista.
 
@@ -345,12 +306,7 @@ SuperTatetiMorph >> mainPanel [
 
 { #category : 'initialization' }
 SuperTatetiMorph >> openInWorld [
-    juego := SuperTateti new.
     self crearVentana.
-
-    "Conectamos el tablero con el modelo."
-    tableroPanel juego: juego.
-
     self crearTablero.
     self actualizarVista.
     window openInWorld.
@@ -368,10 +324,10 @@ SuperTatetiMorph >> resetPresionado [
     juegoIniciado := false.
 
     "Reiniciamos el modelo de juego (tableros vacíos, X comienza, etc.)."
-    juego reiniciar.
+    juegoSistema reiniciar.
 
     "Reiniciamos ambos relojes y dejamos a X como jugador activo."
-    relojTurnos resetearAmbos.
+    relojSistema resetearAmbos.
 
     "La ayuda de casillas válidas queda siempre activada."
     ayudaActiva := true.
@@ -409,12 +365,12 @@ SuperTatetiMorph >> returnPresionado [
     "Deshace la última jugada, solo si el juego sigue en curso."
 
     "Si el juego ya terminó, no permitimos deshacer."
-    (juego juegoTerminado) ifTrue: [
+    juegoSistema juegoTerminado ifTrue: [
         UIManager default inform: 'El juego ya terminó. No puedes deshacer jugadas.'.
         ^ self
     ].
 
-    [ juego deshacerUltimaJugada ]
+    [ juegoSistema deshacerUltimaJugada ]
         on: Error
         do: [:ex | UIManager default inform: ex messageText ].
 
@@ -427,17 +383,17 @@ SuperTatetiMorph >> startPresionado [
     "Maneja el botón Start/Stop para el sistema de relojes de turnos."
 
     "Si el juego ya terminó (por tablero o por tiempo), solo mostramos un mensaje."
-    (juego juegoTerminado) ifTrue: [
+    juegoSistema juegoTerminado ifTrue: [
         UIManager default inform: 'El juego ya terminó. Debes volver al menú para iniciar una nueva partida.'.
         ^ self
     ].
 
     "Si el reloj ya está corriendo → lo pausamos (Stop → Start)."
-    relojTurnos corriendo ifTrue: [
+    relojSistema corriendo ifTrue: [
         self detenerReloj.
         botonStart ifNotNil: [
-            botonStart label: 'Start'.   "texto"
-            botonStart extent: 100@40    "forzamos tamaño fijo otra vez"
+            botonStart label: 'Start'.
+            botonStart extent: 100@40
         ].
         ^ self
     ].
@@ -445,17 +401,17 @@ SuperTatetiMorph >> startPresionado [
     "Si aún no se inició el juego, reseteamos los relojes y marcamos que está iniciado."
     juegoIniciado ifFalse: [
         juegoIniciado := true.
-        relojTurnos resetearAmbos.
+        relojSistema resetearAmbos.
         self actualizarTextoTiempo
     ].
 
     "Aseguramos que el jugador activo del reloj coincida con el jugador del juego."
-    relojTurnos jugadorActivo: juego jugadorActual.
+    relojSistema jugadorActivo: juegoSistema jugadorActual.
 
     "Arrancamos el proceso de tiempo y ponemos el botón en Stop, SIN que cambie de tamaño."
     botonStart ifNotNil: [
         botonStart label: 'Stop'.
-        botonStart extent: 100@40    "mismo tamaño que cuando dice Start"
+        botonStart extent: 100@40
     ].
     self iniciarReloj.
 
@@ -468,7 +424,7 @@ SuperTatetiMorph >> ticRelojes [
 
     | quienPerdio |
 
-    quienPerdio := relojTurnos tic.
+    quienPerdio := relojSistema tic.
     self actualizarTextoTiempo.
 
     "Si nadie se quedó sin tiempo, no hacemos nada más."
