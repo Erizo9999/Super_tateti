@@ -18,6 +18,10 @@ SuperTatetiJuegoSistema >> actualizarVistaConAyuda: unBooleano [
 
 { #category : 'events' }
 SuperTatetiJuegoSistema >> clicEnTablerito: indiceTablerito casilla: indiceCasilla [
+    "Puente entre el tablero visual (SuperTatetiBoardPanel) y el Morph de UI.
+    El BoardPanel envía el clic a este JuegoSistema y aquí lo reenviamos
+    al uiController (por ejemplo, un SuperTatetiMorph)."
+
     uiController ifNotNil: [
         ^ uiController clicEnTablerito: indiceTablerito casilla: indiceCasilla
     ].
@@ -25,10 +29,14 @@ SuperTatetiJuegoSistema >> clicEnTablerito: indiceTablerito casilla: indiceCasil
 ]
 
 { #category : 'initialization' }
-SuperTatetiJuegoSistema >> configurarController: unMorph [ 
-    "El controller del tablero ahora es directamente el morph (SuperTatetiMorph)."
-    tableroPanel controller: unMorph.
+SuperTatetiJuegoSistema >> configurarController: unMorph [
+    "El controller visible (UI) es unMorph (SuperTatetiMorph),
+    pero el tablero habla primero con este JuegoSistema."
+
+    uiController := unMorph.
+    tableroPanel controller: self.
     tableroPanel juego: juego.
+
 ]
 
 { #category : 'building' }
