@@ -3,20 +3,38 @@ Class {
 	#superclass : 'Object',
 	#instVars : [
 		'controller',
-		'topBarPanel'
+		'topBarPanel',
+		'returnHabilitado',
+		'ayudaActiva',
+		'juegoIniciado',
+		'botonStart'
 	],
 	#category : 'ProyectoSuperTateti',
 	#package : 'ProyectoSuperTateti'
 }
 
 { #category : 'accessing' }
-SuperTatetiBotonesSistema >> botonStart [ 
-    ^ controller botonStart
+SuperTatetiBotonesSistema >> ayudaActiva [
+    ^ ayudaActiva
+
 ]
 
 { #category : 'accessing' }
-SuperTatetiBotonesSistema >> botonStart: unBoton [ 
-    controller botonStart: unBoton
+SuperTatetiBotonesSistema >> ayudaActiva: unBooleano [
+    ayudaActiva := unBooleano
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiBotonesSistema >> botonStart [
+    ^ botonStart
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiBotonesSistema >> botonStart: unBoton [
+    botonStart := unBoton
+
 ]
 
 { #category : 'accessing' }
@@ -36,11 +54,30 @@ SuperTatetiBotonesSistema >> crearTopBarPanel [
 ]
 
 { #category : 'initialization' }
-SuperTatetiBotonesSistema >> initialize [ 
+SuperTatetiBotonesSistema >> initialize [
     super initialize.
     controller := nil.
     topBarPanel := SuperTatetiTopBarPanel new.
-    topBarPanel controller: self.   "La barra de botones habla con BotonesSistema"
+    topBarPanel controller: self.
+
+    "Estado inicial de los botones / flags."
+    returnHabilitado := true.
+    ayudaActiva := true.
+    juegoIniciado := false.
+    botonStart := nil.
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiBotonesSistema >> juegoIniciado [
+    ^ juegoIniciado
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiBotonesSistema >> juegoIniciado: unBooleano [
+    juegoIniciado := unBooleano
+
 ]
 
 { #category : 'events' }
@@ -55,8 +92,15 @@ SuperTatetiBotonesSistema >> returnDeshabilitado [
 ]
 
 { #category : 'accessing' }
-SuperTatetiBotonesSistema >> returnHabilitado [ 
-    ^ controller returnHabilitado
+SuperTatetiBotonesSistema >> returnHabilitado [
+    ^ returnHabilitado
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiBotonesSistema >> returnHabilitado: unBooleano [
+    returnHabilitado := unBooleano
+
 ]
 
 { #category : 'events' }
