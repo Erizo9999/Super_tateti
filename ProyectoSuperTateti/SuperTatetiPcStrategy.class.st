@@ -1,9 +1,6 @@
 Class {
 	#name : 'SuperTatetiPcStrategy',
 	#superclass : 'Object',
-	#instVars : [
-		'Object'
-	],
 	#category : 'ProyectoSuperTateti',
 	#package : 'ProyectoSuperTateti'
 }

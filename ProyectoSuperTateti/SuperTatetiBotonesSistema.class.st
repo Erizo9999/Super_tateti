@@ -115,9 +115,9 @@ SuperTatetiBotonesSistema >> startPresionado [
 ]
 
 { #category : 'accessing' }
-SuperTatetiBotonesSistema >> topBarPanel [ [
+SuperTatetiBotonesSistema >> topBarPanel [
     ^ topBarPanel
-]
+
 ]
 
 { #category : 'events' }

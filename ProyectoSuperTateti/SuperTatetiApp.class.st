@@ -64,7 +64,7 @@ SuperTatetiApp >> jugar1vs1 [
 ]
 
 { #category : 'events' }
-SuperTatetiApp >> jugar1vsPC [ 
+SuperTatetiApp >> jugar1vsPC [
     | juegoSistema relojSistema botonesSistema |
 
     contenidoActual ifNotNil: [
@@ -74,11 +74,13 @@ SuperTatetiApp >> jugar1vsPC [
 
     juegoMorph := SuperTatetiVsPcMorph new.
     juegoMorph app: self.
-    juegoMorph returnHabilitado: false.
 
     juegoSistema := SuperTatetiJuegoSistema new.
     relojSistema := SuperTatetiRelojSistema new.
     botonesSistema := SuperTatetiBotonesSistema new.
+
+    "Deshabilitamos Return para esta partida (1 vs PC) antes de crear la barra."
+    botonesSistema returnHabilitado: false.
 
     juegoMorph
         configurarConJuegoSistema: juegoSistema
@@ -87,6 +89,7 @@ SuperTatetiApp >> jugar1vsPC [
 
     juegoMorph instalarEnVentana: window.
     contenidoActual := juegoMorph mainPanel
+
 ]
 
 { #category : 'building' }
