@@ -11,21 +11,6 @@ Class {
 }
 
 { #category : 'events' }
-SuperTatetiVsPcMorph >> clicEnTablerito: indiceTablerito casilla: indiceCasilla [
-    "Primero procesamos el clic como en el modo 1 vs 1."
-    super clicEnTablerito: indiceTablerito casilla: indiceCasilla.
-
-    "Si el juego terminó o el reloj está pausado, no hacemos nada más."
-    (juegoSistema juegoTerminado or: [ relojSistema corriendo not ]) ifTrue: [ ^ self ].
-
-    "Si ahora es el turno de la PC, dejamos que juegue."
-    (juegoSistema jugadorActual = simboloPc) ifTrue: [
-        self jugarTurnoPc
-    ].
-
-]
-
-{ #category : 'events' }
 SuperTatetiVsPcMorph >> despuesDeJugadaHumano [
     | juego reloj |
 

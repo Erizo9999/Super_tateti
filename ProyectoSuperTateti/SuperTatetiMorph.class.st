@@ -244,11 +244,30 @@ SuperTatetiMorph >> mainPanel [
 
 { #category : 'initialization' }
 SuperTatetiMorph >> openInWorld [
-    self crearVentana.
-    self crearTablero.
-    self actualizarVista.
-    window openInWorld.
+    | juegoSistema relojSistema botonesSistema |
 
+    "Crear la ventana del juego."
+    self crearVentana.
+
+    "Crear los sistemas de juego, reloj y botones."
+    juegoSistema := SuperTatetiJuegoSistema new.
+    relojSistema := SuperTatetiRelojSistema new.
+    botonesSistema := SuperTatetiBotonesSistema new.
+
+    "Configurar la partida (orquestador) con estos sistemas."
+    self
+        configurarConJuegoSistema: juegoSistema
+        relojSistema: relojSistema
+        botonesSistema: botonesSistema.
+
+    "En este modo (1 vs 1) dejamos Return habilitado."
+    self returnHabilitado: true.
+
+    "Instalar el tablero en la misma ventana."
+    self instalarEnVentana: window.
+
+    "Mostrar la ventana en el mundo."
+    window openInWorld.
 ]
 
 { #category : 'accessing' }

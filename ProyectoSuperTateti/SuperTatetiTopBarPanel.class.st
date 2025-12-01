@@ -23,7 +23,8 @@ SuperTatetiTopBarPanel >> controller: unController [
 
 { #category : 'building' }
 SuperTatetiTopBarPanel >> crearBotonConLabel: label action: selector [
-    "Crea un botón de la barra superior con tamaño fijo."
+    "Crea un botón de la barra superior con tamaño fijo.
+    Los clics van al controller (SuperTatetiBotonesSistema)."
     ^ SimpleButtonMorph new
         label: label;
         extent: 100@40;          "Tamaño fijo para que no cambie al modificar el texto"
@@ -32,10 +33,9 @@ SuperTatetiTopBarPanel >> crearBotonConLabel: label action: selector [
         color: Color lightGray;
         borderWidth: 1;
         borderColor: Color black;
-        target: controller;      "Los clics van al controller (SuperTatetiMorph)"
+        target: controller;      "El controller es el sistema de botones"
         actionSelector: selector;
         yourself
-
 ]
 
 { #category : 'building' }
