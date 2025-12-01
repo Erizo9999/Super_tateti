@@ -5,9 +5,6 @@ Class {
 		'window',
 		'mainPanel',
 		'app',
-		'juegoSistema',
-		'relojSistema',
-		'botonesSistema',
 		'partidaSistema'
 	],
 	#category : 'ProyectoSuperTateti',
@@ -22,27 +19,28 @@ SuperTatetiMorph class >> open [
 
 { #category : 'helpers' }
 SuperTatetiMorph >> actualizarTextoTiempo [
-    relojSistema actualizarTextoTiempo.
+    partidaSistema actualizarTextoTiempo
 
 ]
 
 { #category : 'updating' }
 SuperTatetiMorph >> actualizarVista [
-    "Delegamos el redibujado del tablero al panel especializado."
-    juegoSistema ifNotNil: [
-        juegoSistema actualizarVistaConAyuda: self ayudaActiva ].
+    partidaSistema actualizarVista
 
 ]
 
 { #category : 'helpers' }
 SuperTatetiMorph >> anunciarGanador [
-    juegoSistema ganador
+    | ganador |
+    ganador := partidaSistema juegoSistema ganador.
+
+    ganador
         ifNil: [
             UIManager default inform:
                 'Fin del juego: empate o todos los tableritos cerrados.' ]
         ifNotNil: [
             UIManager default inform:
-                'Ganador: ', juegoSistema ganador asString asUppercase ].
+                'Ganador: ', ganador asString asUppercase ]
 
 ]
 
@@ -60,25 +58,25 @@ SuperTatetiMorph >> app: unaApp [
 
 { #category : 'accessing' }
 SuperTatetiMorph >> ayudaActiva [
-    ^ botonesSistema ayudaActiva
+    ^ partidaSistema ayudaActiva
 
 ]
 
 { #category : 'accessing' }
 SuperTatetiMorph >> ayudaActiva: unBooleano [
-    botonesSistema ayudaActiva: unBooleano
+    partidaSistema ayudaActiva: unBooleano
 
 ]
 
 { #category : 'accessing' }
 SuperTatetiMorph >> botonStart [
-    ^ botonesSistema botonStart
+    ^ partidaSistema botonStart
 
 ]
 
 { #category : 'accessing' }
 SuperTatetiMorph >> botonStart: unBoton [
-    botonesSistema botonStart: unBoton
+    partidaSistema botonStart: unBoton
 
 ]
 
@@ -87,28 +85,19 @@ SuperTatetiMorph >> configurarConJuegoSistema: unJuegoSistema
         relojSistema: unRelojSistema
         botonesSistema: unBotonesSistema [
 
-    "Guardamos referencias (por ahora el Morph las sigue usando)."
-    juegoSistema := unJuegoSistema.
-    relojSistema := unRelojSistema.
-    botonesSistema := unBotonesSistema.
-
     "Creamos el orquestador de partida y le pasamos todo."
     partidaSistema := SuperTatetiPartidaSistema new.
     partidaSistema
-        configurarConJuegoSistema: juegoSistema
-        relojSistema: relojSistema
-        botonesSistema: botonesSistema
-        uiController: self.
-
-    "Conectamos los sistemas para que hablen con PartidaSistema (ya no directo al Morph)."
-    juegoSistema configurarController: partidaSistema.
-    botonesSistema controller: partidaSistema
+        configurarConJuegoSistema: unJuegoSistema
+        relojSistema: unRelojSistema
+        botonesSistema: unBotonesSistema
+        uiController: self
 
 ]
 
 { #category : 'building' }
 SuperTatetiMorph >> crearBoardPanel [
-    ^ juegoSistema crearBoardPanel
+    ^ partidaSistema crearBoardPanel
 
 ]
 
@@ -130,7 +119,7 @@ SuperTatetiMorph >> crearMainPanel [
 
 { #category : 'building' }
 SuperTatetiMorph >> crearPanelTiemposJugadores [
-    ^ relojSistema crearPanelTiemposJugadores
+    ^ partidaSistema crearPanelTiemposJugadores
 
 ]
 
@@ -153,8 +142,9 @@ SuperTatetiMorph >> crearTablero [
 ]
 
 { #category : 'building' }
-SuperTatetiMorph >> crearTopBarPanel [ 
-    ^ botonesSistema crearTopBarPanel
+SuperTatetiMorph >> crearTopBarPanel [
+    ^ partidaSistema crearTopBarPanel
+
 ]
 
 { #category : 'building' }
@@ -172,7 +162,7 @@ SuperTatetiMorph >> despuesDeJugadaHumano [
 
 { #category : 'helpers' }
 SuperTatetiMorph >> detenerReloj [
-    relojSistema detener.
+    partidaSistema detenerReloj
 
 ]
 
@@ -180,7 +170,7 @@ SuperTatetiMorph >> detenerReloj [
 SuperTatetiMorph >> finPorTiempoDe: unSimbolo [
     | ganadorPorTiempo mensaje boton |
 
-    juegoSistema juegoTerminado ifTrue: [ ^ self ].
+    (partidaSistema juegoSistema juegoTerminado) ifTrue: [ ^ self ].
 
     self detenerReloj.
     self juegoIniciado: false.
@@ -189,7 +179,7 @@ SuperTatetiMorph >> finPorTiempoDe: unSimbolo [
         ifTrue: [ #o ]
         ifFalse: [ #x ].
 
-    juegoSistema ganador: ganadorPorTiempo.
+    (partidaSistema juegoSistema) ganador: ganadorPorTiempo.
 
     boton := self botonStart.
     boton ifNotNil: [
@@ -199,7 +189,7 @@ SuperTatetiMorph >> finPorTiempoDe: unSimbolo [
 
     mensaje := 'Se terminó el tiempo de ', unSimbolo asString asUppercase,
                '. Gana ', ganadorPorTiempo asString asUppercase, ' por tiempo.'.
-    UIManager default inform: mensaje.
+    UIManager default inform: mensaje
 
 ]
 
@@ -212,7 +202,7 @@ SuperTatetiMorph >> informarQueDebeIniciar [
 
 { #category : 'helpers' }
 SuperTatetiMorph >> iniciarReloj [
-    relojSistema iniciarRelojParaJuego: juegoSistema conCallback: [ self ticRelojes ].
+    partidaSistema iniciarReloj
 
 ]
 
@@ -223,13 +213,6 @@ SuperTatetiMorph >> initialize [
     window := nil.
     mainPanel := nil.
     app := nil.
-
-    "Los sistemas se inyectan desde afuera (App)."
-    juegoSistema := nil.
-    relojSistema := nil.
-    botonesSistema := nil.
-
-    "Orquestador de la partida."
     partidaSistema := nil
 
 ]
@@ -244,13 +227,13 @@ SuperTatetiMorph >> instalarEnVentana: unaVentana [
 
 { #category : 'accessing' }
 SuperTatetiMorph >> juegoIniciado [
-    ^ botonesSistema juegoIniciado
+    ^ partidaSistema juegoIniciado
 
 ]
 
 { #category : 'accessing' }
 SuperTatetiMorph >> juegoIniciado: unBooleano [
-    botonesSistema juegoIniciado: unBooleano
+    partidaSistema juegoIniciado: unBooleano
 
 ]
 
@@ -270,32 +253,32 @@ SuperTatetiMorph >> openInWorld [
 
 { #category : 'accessing' }
 SuperTatetiMorph >> returnHabilitado [
-    ^ botonesSistema returnHabilitado
+    ^ partidaSistema returnHabilitado
 
 ]
 
 { #category : 'accessing' }
 SuperTatetiMorph >> returnHabilitado: unBooleano [
-    botonesSistema ifNotNil: [
-        botonesSistema returnHabilitado: unBooleano ]
+    partidaSistema ifNotNil: [
+        partidaSistema returnHabilitado: unBooleano ]
 
 ]
 
 { #category : 'helpers' }
 SuperTatetiMorph >> ticRelojes [
-    "Pide al RelojTurnos que reste un segundo al jugador activo y
-    actualiza la interfaz. Si alguien se queda sin tiempo, termina el juego."
-
     | quienPerdio |
 
-    quienPerdio := relojSistema tic.
+    "Pedir al sistema de partida que reste un segundo."
+    quienPerdio := partidaSistema ticRelojes.
+
+    "Actualizar los textos de los relojes en la UI."
     self actualizarTextoTiempo.
 
     "Si nadie se quedó sin tiempo, no hacemos nada más."
     quienPerdio ifNil: [ ^ self ].
 
-    "Si alguien quedó sin tiempo, delegamos al helper."
-    self finPorTiempoDe: quienPerdio.
+    "Si alguien quedó sin tiempo, terminar la partida por tiempo."
+    self finPorTiempoDe: quienPerdio
 
 ]
 

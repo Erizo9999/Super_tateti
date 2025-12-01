@@ -38,7 +38,7 @@ SuperTatetiApp >> crearVentana [
 ]
 
 { #category : 'events' }
-SuperTatetiApp >> jugar1vs1 [ 
+SuperTatetiApp >> jugar1vs1 [
     | juegoSistema relojSistema botonesSistema |
 
     contenidoActual ifNotNil: [
@@ -48,7 +48,6 @@ SuperTatetiApp >> jugar1vs1 [
 
     juegoMorph := SuperTatetiMorph new.
     juegoMorph app: self.
-    juegoMorph returnHabilitado: true.
 
     juegoSistema := SuperTatetiJuegoSistema new.
     relojSistema := SuperTatetiRelojSistema new.
@@ -59,8 +58,12 @@ SuperTatetiApp >> jugar1vs1 [
         relojSistema: relojSistema
         botonesSistema: botonesSistema.
 
+    "Ahora que partidaSistema ya existe, configuramos Return."
+    juegoMorph returnHabilitado: true.
+
     juegoMorph instalarEnVentana: window.
     contenidoActual := juegoMorph mainPanel
+
 ]
 
 { #category : 'events' }
@@ -79,13 +82,13 @@ SuperTatetiApp >> jugar1vsPC [
     relojSistema := SuperTatetiRelojSistema new.
     botonesSistema := SuperTatetiBotonesSistema new.
 
-    "Deshabilitamos Return para esta partida (1 vs PC) antes de crear la barra."
-    botonesSistema returnHabilitado: false.
-
     juegoMorph
         configurarConJuegoSistema: juegoSistema
         relojSistema: relojSistema
         botonesSistema: botonesSistema.
+
+    "En 1 vs PC el Return va deshabilitado."
+    juegoMorph returnHabilitado: false.
 
     juegoMorph instalarEnVentana: window.
     contenidoActual := juegoMorph mainPanel

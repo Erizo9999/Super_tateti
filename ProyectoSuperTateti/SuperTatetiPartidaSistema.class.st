@@ -11,6 +11,42 @@ Class {
 	#package : 'ProyectoSuperTateti'
 }
 
+{ #category : 'updating' }
+SuperTatetiPartidaSistema >> actualizarTextoTiempo [
+    relojSistema actualizarTextoTiempo
+
+]
+
+{ #category : 'updating' }
+SuperTatetiPartidaSistema >> actualizarVista [
+    juegoSistema actualizarVistaConAyuda: self ayudaActiva
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiPartidaSistema >> ayudaActiva [
+    ^ botonesSistema ayudaActiva
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiPartidaSistema >> ayudaActiva: unBooleano [
+    botonesSistema ayudaActiva: unBooleano
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiPartidaSistema >> botonStart [
+    ^ botonesSistema botonStart
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiPartidaSistema >> botonStart: unBoton [
+    botonesSistema botonStart: unBoton
+
+]
+
 { #category : 'accessing' }
 SuperTatetiPartidaSistema >> botonesSistema [
     ^ botonesSistema
@@ -45,7 +81,35 @@ SuperTatetiPartidaSistema >> configurarConJuegoSistema: unJuegoSistema
     juegoSistema := unJuegoSistema.
     relojSistema := unRelojSistema.
     botonesSistema := unBotonesSistema.
-    uiController := unMorph
+    uiController := unMorph.
+
+    "Conectar los sistemas con este orquestador de partida."
+    juegoSistema configurarController: self.
+    botonesSistema controller: self
+
+]
+
+{ #category : 'building' }
+SuperTatetiPartidaSistema >> crearBoardPanel [
+    ^ juegoSistema crearBoardPanel
+
+]
+
+{ #category : 'building' }
+SuperTatetiPartidaSistema >> crearPanelTiemposJugadores [
+    ^ relojSistema crearPanelTiemposJugadores
+
+]
+
+{ #category : 'building' }
+SuperTatetiPartidaSistema >> crearTopBarPanel [
+    ^ botonesSistema crearTopBarPanel
+
+]
+
+{ #category : 'game_logic' }
+SuperTatetiPartidaSistema >> detenerReloj [
+    relojSistema detener
 
 ]
 
@@ -65,6 +129,14 @@ SuperTatetiPartidaSistema >> helpPresionado [
 
 ]
 
+{ #category : 'game_logic' }
+SuperTatetiPartidaSistema >> iniciarReloj [
+    relojSistema
+        iniciarRelojParaJuego: juegoSistema
+        conCallback: [ uiController ticRelojes ]
+
+]
+
 { #category : 'initialization' }
 SuperTatetiPartidaSistema >> initialize [
     super initialize.
@@ -72,6 +144,18 @@ SuperTatetiPartidaSistema >> initialize [
     relojSistema := nil.
     botonesSistema := nil.
     uiController := nil
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiPartidaSistema >> juegoIniciado [
+    ^ botonesSistema juegoIniciado
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiPartidaSistema >> juegoIniciado: unBooleano [
+    botonesSistema juegoIniciado: unBooleano
 
 ]
 
@@ -225,6 +309,18 @@ SuperTatetiPartidaSistema >> returnDeshabilitado [
 
 ]
 
+{ #category : 'accessing' }
+SuperTatetiPartidaSistema >> returnHabilitado [
+    ^ botonesSistema returnHabilitado
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiPartidaSistema >> returnHabilitado: unBooleano [
+    botonesSistema returnHabilitado: unBooleano
+
+]
+
 { #category : 'events' }
 SuperTatetiPartidaSistema >> returnPresionado [
     "Deshace la última jugada, solo si el juego sigue en curso."
@@ -288,6 +384,12 @@ SuperTatetiPartidaSistema >> startPresionado [
 
     uiController ifNotNil: [
         uiController iniciarReloj ]
+
+]
+
+{ #category : 'game_logic' }
+SuperTatetiPartidaSistema >> ticRelojes [
+    ^ relojSistema tic
 
 ]
 
