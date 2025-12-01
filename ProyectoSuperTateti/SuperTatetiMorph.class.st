@@ -7,7 +7,8 @@ Class {
 		'app',
 		'juegoSistema',
 		'relojSistema',
-		'botonesSistema'
+		'botonesSistema',
+		'partidaSistema'
 	],
 	#category : 'ProyectoSuperTateti',
 	#package : 'ProyectoSuperTateti'
@@ -81,88 +82,27 @@ SuperTatetiMorph >> botonStart: unBoton [
 
 ]
 
-{ #category : 'events' }
-SuperTatetiMorph >> clicEnTablerito: indiceTablerito casilla: indiceCasilla [
-    | estadoAntes estadoDespues ganadorTablerito oponente perdedor boton |
-
-    "Si ya se acabó el tiempo de X u O, cerramos por tiempo."
-    ((relojSistema relojX termino) or: [ relojSistema relojO termino ]) ifTrue: [
-        perdedor := (relojSistema relojX termino)
-            ifTrue: [ #x ]
-            ifFalse: [ #o ].
-        ^ self finPorTiempoDe: perdedor
-    ].
-
-    "Si el juego ya terminó (por tablero o por tiempo), ignoramos el click."
-    juegoSistema juegoTerminado ifTrue: [
-        self anunciarGanador.
-        ^ self
-    ].
-
-    "Si el juego todavía no fue iniciado con Start, no permitimos jugar."
-    self juegoIniciado ifFalse: [
-        self informarQueDebeIniciar.
-        ^ self
-    ].
-
-    "Si el reloj está pausado (Stop), no permitimos jugar."
-    relojSistema corriendo ifFalse: [
-        UIManager default inform: 'El reloj está pausado. Presiona Start para seguir jugando.'.
-        ^ self
-    ].
-
-    "Recordamos el estado del tablerito antes de la jugada."
-    estadoAntes := juegoSistema estadoDeTablerito: indiceTablerito.
-
-    "Intentamos jugar la jugada en el modelo, capturando posibles errores."
-    [ juegoSistema jugarEnTablerito: indiceTablerito casilla: indiceCasilla ]
-        on: Error
-        do: [:ex | ^ UIManager default inform: ex messageText ].
-
-    "Actualizamos la vista del tablero."
-    self actualizarVista.
-
-    "Si el juego terminó (por tablero), detenemos relojes y anunciamos ganador."
-    juegoSistema juegoTerminado ifTrue: [
-        self detenerReloj.
-        self juegoIniciado: false.
-        boton := self botonStart.
-        boton ifNotNil: [
-            boton label: 'Start'.
-            boton extent: 100@40
-        ].
-        ^ self anunciarGanador
-    ].
-
-    "Revisamos si con esta jugada se capturó el tablerito del tablero grande."
-    estadoDespues := juegoSistema estadoDeTablerito: indiceTablerito.
-    ((#(#x #o) includes: estadoDespues) and: [ estadoDespues ~= estadoAntes ]) ifTrue: [
-        "El ganador del tablerito es estadoDespues; penalizamos al oponente."
-        ganadorTablerito := estadoDespues.
-        oponente := (ganadorTablerito = #x)
-            ifTrue: [ #o ]
-            ifFalse: [ #x ].
-        relojSistema penalizarA: oponente segundos: 10.
-        self actualizarTextoTiempo
-    ].
-
-    "Si el juego sigue, alternamos el jugador activo del reloj."
-    relojSistema alternarJugador.
-
-]
-
 { #category : 'initialization' }
 SuperTatetiMorph >> configurarConJuegoSistema: unJuegoSistema
         relojSistema: unRelojSistema
-        botonesSistema: unBotonesSistema [ 
+        botonesSistema: unBotonesSistema [
 
+    "Guardamos referencias (por ahora el Morph las sigue usando)."
     juegoSistema := unJuegoSistema.
     relojSistema := unRelojSistema.
     botonesSistema := unBotonesSistema.
 
-    "Conectar relaciones internas."
-    juegoSistema configurarController: self.
-    botonesSistema controller: self.
+    "Creamos el orquestador de partida y le pasamos todo."
+    partidaSistema := SuperTatetiPartidaSistema new.
+    partidaSistema
+        configurarConJuegoSistema: juegoSistema
+        relojSistema: relojSistema
+        botonesSistema: botonesSistema
+        uiController: self.
+
+    "Conectamos los sistemas para que hablen con PartidaSistema (ya no directo al Morph)."
+    juegoSistema configurarController: partidaSistema.
+    botonesSistema controller: partidaSistema
 
 ]
 
@@ -224,6 +164,12 @@ SuperTatetiMorph >> crearVentana [
 
 ]
 
+{ #category : 'events' }
+SuperTatetiMorph >> despuesDeJugadaHumano [
+    "Hook para subclases. En el modo 1 vs 1 no hace nada."
+
+]
+
 { #category : 'helpers' }
 SuperTatetiMorph >> detenerReloj [
     relojSistema detener.
@@ -257,21 +203,6 @@ SuperTatetiMorph >> finPorTiempoDe: unSimbolo [
 
 ]
 
-{ #category : 'events' }
-SuperTatetiMorph >> helpPresionado [
-    juegoSistema juegoTerminado ifTrue: [
-        UIManager default inform: 'El juego ya terminó.'.
-        ^ self
-    ].
-
-    "Toggle de la bandera en BotonesSistema."
-    self ayudaActiva: (self ayudaActiva not).
-
-    "Redibujamos todo según el nuevo estado de la ayuda."
-    self actualizarVista.
-
-]
-
 { #category : 'helpers' }
 SuperTatetiMorph >> informarQueDebeIniciar [
     "Muestra un mensaje indicando que hay que presionar Start antes de jugar."
@@ -297,6 +228,9 @@ SuperTatetiMorph >> initialize [
     juegoSistema := nil.
     relojSistema := nil.
     botonesSistema := nil.
+
+    "Orquestador de la partida."
+    partidaSistema := nil
 
 ]
 
@@ -334,44 +268,6 @@ SuperTatetiMorph >> openInWorld [
 
 ]
 
-{ #category : 'events' }
-SuperTatetiMorph >> resetPresionado [
-    | boton |
-
-    "Detenemos cualquier reloj que esté andando."
-    self detenerReloj.
-
-    "Marcamos que el juego ya no está en curso."
-    self juegoIniciado: false.
-
-    "Reiniciamos el modelo de juego."
-    juegoSistema reiniciar.
-
-    "Reiniciamos ambos relojes y dejamos a X como jugador activo."
-    relojSistema resetearAmbos.
-
-    "La ayuda de casillas válidas queda siempre activada."
-    self ayudaActiva: true.
-
-    "Volvemos el botón a 'Start' con tamaño fijo."
-    boton := self botonStart.
-    boton ifNotNil: [
-        boton label: 'Start'.
-        boton extent: 100@40
-    ].
-
-    "Actualizamos tiempos y tablero en pantalla."
-    self actualizarTextoTiempo.
-    self actualizarVista.
-
-]
-
-{ #category : 'events' }
-SuperTatetiMorph >> returnDeshabilitado [
-    UIManager default inform: 'La función Return está deshabilitada para esta partida.'
-
-]
-
 { #category : 'accessing' }
 SuperTatetiMorph >> returnHabilitado [
     ^ botonesSistema returnHabilitado
@@ -382,67 +278,6 @@ SuperTatetiMorph >> returnHabilitado [
 SuperTatetiMorph >> returnHabilitado: unBooleano [
     botonesSistema ifNotNil: [
         botonesSistema returnHabilitado: unBooleano ]
-
-]
-
-{ #category : 'events' }
-SuperTatetiMorph >> returnPresionado [ 
-    "Deshace la última jugada, solo si el juego sigue en curso."
-
-    juegoSistema juegoTerminado ifTrue: [
-        UIManager default inform: 'El juego ya terminó. No puedes deshacer jugadas.'.
-        ^ self
-    ].
-
-    [ juegoSistema deshacerUltimaJugada ]
-        on: Error
-        do: [:ex | ^ UIManager default inform: ex messageText ].
-
-    "Sincronizamos el jugador activo del reloj con el del juego."
-    relojSistema jugadorActivo: juegoSistema jugadorActual.
-
-    self actualizarVista.
-]
-
-{ #category : 'events' }
-SuperTatetiMorph >> startPresionado [
-    | boton |
-
-    "Si el juego ya terminó, mensaje y salir."
-    juegoSistema juegoTerminado ifTrue: [
-        UIManager default inform:
-            'El juego ya terminó. Debes volver al menú para iniciar una nueva partida.'.
-        ^ self
-    ].
-
-    boton := self botonStart.
-
-    "Si el reloj ya está corriendo → lo pausamos."
-    relojSistema corriendo ifTrue: [
-        self detenerReloj.
-        boton ifNotNil: [
-            boton label: 'Start'.
-            boton extent: 100@40
-        ].
-        ^ self
-    ].
-
-    "Si aún no se inició el juego, reseteamos los relojes y marcamos que está iniciado."
-    self juegoIniciado ifFalse: [
-        self juegoIniciado: true.
-        relojSistema resetearAmbos.
-        self actualizarTextoTiempo
-    ].
-
-    "Aseguramos que el jugador activo del reloj coincida con el jugador del juego."
-    relojSistema jugadorActivo: juegoSistema jugadorActual.
-
-    "Arrancamos el proceso de tiempo y ponemos el botón en Stop."
-    boton ifNotNil: [
-        boton label: 'Stop'.
-        boton extent: 100@40
-    ].
-    self iniciarReloj.
 
 ]
 
@@ -477,6 +312,6 @@ SuperTatetiMorph >> volverAlInicio [
         boton extent: 100@40
     ].
 
-    app volverAlMenu.
+    app volverAlMenu
 
 ]

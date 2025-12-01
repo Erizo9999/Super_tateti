@@ -38,13 +38,15 @@ SuperTatetiBotonesSistema >> botonStart: unBoton [
 ]
 
 { #category : 'accessing' }
-SuperTatetiBotonesSistema >> controller [ 
+SuperTatetiBotonesSistema >> controller [
     ^ controller
+
 ]
 
 { #category : 'accessing' }
-SuperTatetiBotonesSistema >> controller: unController [ 
+SuperTatetiBotonesSistema >> controller: unController [
     controller := unController
+
 ]
 
 { #category : 'building' }

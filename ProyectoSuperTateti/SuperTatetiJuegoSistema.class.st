@@ -29,13 +29,13 @@ SuperTatetiJuegoSistema >> clicEnTablerito: indiceTablerito casilla: indiceCasil
 ]
 
 { #category : 'initialization' }
-SuperTatetiJuegoSistema >> configurarController: unMorph [
-    "El controller visible (UI) es unMorph (SuperTatetiMorph),
+SuperTatetiJuegoSistema >> configurarController: unController [
+    "El controller de alto nivel es unController (SuperTatetiPartidaSistema),
     pero el tablero habla primero con este JuegoSistema."
 
-    uiController := unMorph.
+    uiController := unController.
     tableroPanel controller: self.
-    tableroPanel juego: juego.
+    tableroPanel juego: juego
 
 ]
 
