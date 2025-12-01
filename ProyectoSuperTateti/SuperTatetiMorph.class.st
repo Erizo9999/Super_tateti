@@ -133,9 +133,10 @@ SuperTatetiMorph >> crearTablero [
     boardPanel := self crearBoardPanel.
     panelTiemposLocal := self crearPanelTiemposJugadores.
 
-    mainPanel addMorph: topBar.
-    mainPanel addMorph: boardPanel.
     mainPanel addMorph: panelTiemposLocal.
+    mainPanel addMorph: boardPanel.
+    mainPanel addMorph: topBar.
+
 
     window addMorph: mainPanel frame: (0@0 corner: 1@1).
 
