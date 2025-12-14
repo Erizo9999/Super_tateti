@@ -45,7 +45,9 @@ SuperTatetiBotonesSistema >> controller [
 
 { #category : 'accessing' }
 SuperTatetiBotonesSistema >> controller: unController [
-    controller := unController
+    controller := unController.
+    topBarPanel ifNotNil: [
+        topBarPanel controller: unController ]
 
 ]
 
@@ -60,9 +62,7 @@ SuperTatetiBotonesSistema >> initialize [
     super initialize.
     controller := nil.
     topBarPanel := SuperTatetiTopBarPanel new.
-    topBarPanel controller: self.
 
-    "Estado inicial de los botones / flags."
     returnHabilitado := true.
     ayudaActiva := true.
     juegoIniciado := false.
@@ -98,17 +98,6 @@ SuperTatetiBotonesSistema >> ponerBotonStartEnModoStop [
 
 ]
 
-{ #category : 'events' }
-SuperTatetiBotonesSistema >> resetPresionado [ 
-    controller resetPresionado
-]
-
-{ #category : 'events' }
-SuperTatetiBotonesSistema >> returnDeshabilitado [ 
-    controller returnDeshabilitado
-
-]
-
 { #category : 'accessing' }
 SuperTatetiBotonesSistema >> returnHabilitado [
     ^ returnHabilitado
@@ -121,24 +110,8 @@ SuperTatetiBotonesSistema >> returnHabilitado: unBooleano [
 
 ]
 
-{ #category : 'events' }
-SuperTatetiBotonesSistema >> returnPresionado [ 
-    controller returnPresionado
-]
-
-{ #category : 'events' }
-SuperTatetiBotonesSistema >> startPresionado [ 
-    controller startPresionado
-
-]
-
 { #category : 'accessing' }
 SuperTatetiBotonesSistema >> topBarPanel [
     ^ topBarPanel
 
-]
-
-{ #category : 'events' }
-SuperTatetiBotonesSistema >> volverAlInicio [ 
-    controller volverAlInicio
 ]

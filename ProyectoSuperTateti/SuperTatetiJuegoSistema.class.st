@@ -10,9 +10,12 @@ Class {
 	#package : 'ProyectoSuperTateti'
 }
 
-{ #category : 'building' }
+{ #category : 'updating' }
 SuperTatetiJuegoSistema >> actualizarVistaConAyuda: unBooleano [
-    tableroPanel actualizarVistaConAyuda: unBooleano.
+    tableroPanel actualizarVista.
+
+    unBooleano ifTrue: [
+        tableroPanel resaltarCasillas: self movimientosValidos ]
 
 ]
 
@@ -107,6 +110,21 @@ SuperTatetiJuegoSistema >> jugadorActual [
 { #category : 'accessing' }
 SuperTatetiJuegoSistema >> jugarEnTablerito: indiceTablerito casilla: indiceCasilla [
     ^ juego jugarEnTablerito: indiceTablerito casilla: indiceCasilla
+
+]
+
+{ #category : 'game_logic' }
+SuperTatetiJuegoSistema >> movimientosValidos [
+    | jugadas |
+
+    jugadas := OrderedCollection new.
+
+    1 to: 9 do: [:t |
+        1 to: 9 do: [:c |
+            (juego esMovimientoValidoEnTablerito: t casilla: c)
+                ifTrue: [ jugadas add: { t. c } ] ] ].
+
+    ^ jugadas
 
 ]
 

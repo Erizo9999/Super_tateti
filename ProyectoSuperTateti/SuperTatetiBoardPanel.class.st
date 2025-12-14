@@ -38,15 +38,16 @@ SuperTatetiBoardPanel >> actualizarBotonDeTablerito: indiceTablerito casilla: in
 ]
 
 { #category : 'updating' }
-SuperTatetiBoardPanel >> actualizarVistaConAyuda: unBooleano [
-    "Redibuja todo el tablero según el estado actual del modelo y, si corresponde, la ayuda."
-
+SuperTatetiBoardPanel >> actualizarVista [
     1 to: 9 do: [:t |
         1 to: 9 do: [:c |
-            self actualizarBotonDeTablerito: t casilla: c ] ].
+            self actualizarBotonDeTablerito: t casilla: c ] ]
 
-    unBooleano ifTrue: [
-        self resaltarMovimientosValidos ].
+]
+
+{ #category : 'updating' }
+SuperTatetiBoardPanel >> actualizarVistaConAyuda: unBooleano [
+    self actualizarVista
 
 ]
 
@@ -187,14 +188,12 @@ SuperTatetiBoardPanel >> panel [
 ]
 
 { #category : 'updating' }
-SuperTatetiBoardPanel >> resaltarMovimientosValidos [
-    1 to: 9 do: [:t |
-        1 to: 9 do: [:c |
-            (controller
-                esMovimientoValidoEnTablerito: t
-                casilla: c) ifTrue: [
-                    | btn |
-                    btn := (botones at: t) at: c.
-                    btn color: Color yellow ] ] ].
+SuperTatetiBoardPanel >> resaltarCasillas: unaColeccion [
+    unaColeccion do: [:par |
+        | t c btn |
+        t := par first.
+        c := par second.
+        btn := (botones at: t) at: c.
+        btn color: Color yellow ]
 
 ]

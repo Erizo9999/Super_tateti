@@ -17,12 +17,6 @@ SuperTatetiMorph class >> open [
 
 ]
 
-{ #category : 'helpers' }
-SuperTatetiMorph >> actualizarTextoTiempo [
-    partidaSistema actualizarTextoTiempo
-
-]
-
 { #category : 'updating' }
 SuperTatetiMorph >> actualizarVista [
     partidaSistema actualizarVista
@@ -31,16 +25,17 @@ SuperTatetiMorph >> actualizarVista [
 
 { #category : 'helpers' }
 SuperTatetiMorph >> anunciarGanador [
-    | ganador |
-    ganador := partidaSistema juegoSistema ganador.
+    | ganadorLocal |
 
-    ganador
+    ganadorLocal := partidaSistema ganadorActual.
+
+    ganadorLocal
         ifNil: [
             UIManager default inform:
                 'Fin del juego: empate o todos los tableritos cerrados.' ]
         ifNotNil: [
             UIManager default inform:
-                'Ganador: ', ganador asString asUppercase ]
+                'Ganador: ', ganadorLocal asString asUppercase ]
 
 ]
 
@@ -65,18 +60,6 @@ SuperTatetiMorph >> ayudaActiva [
 { #category : 'accessing' }
 SuperTatetiMorph >> ayudaActiva: unBooleano [
     partidaSistema ayudaActiva: unBooleano
-
-]
-
-{ #category : 'accessing' }
-SuperTatetiMorph >> botonStart [
-    ^ partidaSistema botonStart
-
-]
-
-{ #category : 'accessing' }
-SuperTatetiMorph >> botonStart: unBoton [
-    partidaSistema botonStart: unBoton
 
 ]
 
@@ -169,9 +152,9 @@ SuperTatetiMorph >> detenerReloj [
 
 { #category : 'helpers' }
 SuperTatetiMorph >> finPorTiempoDe: unSimbolo [
-    | ganadorPorTiempo mensaje boton |
+    | ganadorPorTiempo mensaje |
 
-    (partidaSistema juegoSistema juegoTerminado) ifTrue: [ ^ self ].
+    (partidaSistema juegoTerminado) ifTrue: [ ^ self ].
 
     self detenerReloj.
     self juegoIniciado: false.
@@ -180,13 +163,8 @@ SuperTatetiMorph >> finPorTiempoDe: unSimbolo [
         ifTrue: [ #o ]
         ifFalse: [ #x ].
 
-    (partidaSistema juegoSistema) ganador: ganadorPorTiempo.
-
-    boton := self botonStart.
-    boton ifNotNil: [
-        boton label: 'Start'.
-        boton extent: 100@40
-    ].
+    partidaSistema fijarGanador: ganadorPorTiempo.
+    partidaSistema ponerBotonStartEnModoStart.
 
     mensaje := 'Se terminó el tiempo de ', unSimbolo asString asUppercase,
                '. Gana ', ganadorPorTiempo asString asUppercase, ' por tiempo.'.
@@ -326,34 +304,16 @@ SuperTatetiMorph >> returnHabilitado: unBooleano [
 
 { #category : 'helpers' }
 SuperTatetiMorph >> ticRelojes [
-    | quienPerdio |
-
-    "Pedir al sistema de partida que reste un segundo."
-    quienPerdio := partidaSistema ticRelojes.
-
-    "Actualizar los textos de los relojes en la UI."
-    self actualizarTextoTiempo.
-
-    "Si nadie se quedó sin tiempo, no hacemos nada más."
-    quienPerdio ifNil: [ ^ self ].
-
-    "Si alguien quedó sin tiempo, terminar la partida por tiempo."
-    self finPorTiempoDe: quienPerdio
+    partidaSistema procesarTickRelojes
 
 ]
 
 { #category : 'events' }
 SuperTatetiMorph >> volverAlInicio [
-    | boton |
-
     self detenerReloj.
     self juegoIniciado: false.
 
-    boton := self botonStart.
-    boton ifNotNil: [
-        boton label: 'Start'.
-        boton extent: 100@40
-    ].
+    partidaSistema ponerBotonStartEnModoStart.
 
     app volverAlMenu
 

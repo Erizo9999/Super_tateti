@@ -23,6 +23,27 @@ SuperTatetiPartidaSistema >> actualizarVista [
 
 ]
 
+{ #category : 'game_logic' }
+SuperTatetiPartidaSistema >> aplicarPenalizacionSiCapturoTablerito: indiceTablerito estadoAntes: estadoAntes [
+    | estadoDespues ganadorTablerito oponente |
+
+    estadoDespues := juegoSistema estadoDeTablerito: indiceTablerito.
+
+    ((#(#x #o) includes: estadoDespues) and: [ estadoDespues ~= estadoAntes ]) ifFalse: [
+        ^ self ].
+
+    ganadorTablerito := estadoDespues.
+    oponente := (ganadorTablerito = #x)
+        ifTrue: [ #o ]
+        ifFalse: [ #x ].
+
+    relojSistema penalizarA: oponente segundos: 10.
+
+    "Actualizar el panel del reloj sin pasar por la vista"
+    self actualizarTextoTiempo
+
+]
+
 { #category : 'accessing' }
 SuperTatetiPartidaSistema >> ayudaActiva [
     ^ botonesSistema ayudaActiva
@@ -113,6 +134,29 @@ SuperTatetiPartidaSistema >> detenerReloj [
 
 ]
 
+{ #category : 'accessing' }
+SuperTatetiPartidaSistema >> fijarGanador: unSimbolo [
+    juegoSistema ganador: unSimbolo
+
+]
+
+{ #category : 'game_logic' }
+SuperTatetiPartidaSistema >> finalizarPartidaPorTablero [
+    relojSistema detener.
+    botonesSistema juegoIniciado: false.
+    botonesSistema ponerBotonStartEnModoStart.
+
+    vistaPrincipal ifNotNil: [
+        vistaPrincipal anunciarGanador ]
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiPartidaSistema >> ganadorActual [
+    ^ juegoSistema ganador
+
+]
+
 { #category : 'events' }
 SuperTatetiPartidaSistema >> helpPresionado [
     juegoSistema juegoTerminado ifTrue: [
@@ -134,7 +178,7 @@ SuperTatetiPartidaSistema >> helpPresionado [
 SuperTatetiPartidaSistema >> iniciarReloj [
     relojSistema
         iniciarRelojParaJuego: juegoSistema
-        conCallback: [ vistaPrincipal ticRelojes ]
+        conCallback: [ self procesarTickRelojes ]
 
 ]
 
@@ -172,6 +216,18 @@ SuperTatetiPartidaSistema >> juegoSistema: unJuegoSistema [
 
 ]
 
+{ #category : 'accessing' }
+SuperTatetiPartidaSistema >> juegoTerminado [
+    ^ juegoSistema juegoTerminado
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiPartidaSistema >> jugadorActual [
+    ^ juegoSistema jugadorActual
+
+]
+
 { #category : 'events' }
 SuperTatetiPartidaSistema >> jugarMovimientoPcEnTablerito: indiceTablerito casilla: indiceCasilla [
     self
@@ -180,43 +236,35 @@ SuperTatetiPartidaSistema >> jugarMovimientoPcEnTablerito: indiceTablerito casil
 
 ]
 
+{ #category : 'accessing' }
+SuperTatetiPartidaSistema >> modeloDeJuego [
+    ^ juegoSistema juego
+
+]
+
+{ #category : 'events' }
+SuperTatetiPartidaSistema >> ponerBotonStartEnModoStart [
+    botonesSistema ponerBotonStartEnModoStart
+
+]
+
+{ #category : 'events' }
+SuperTatetiPartidaSistema >> ponerBotonStartEnModoStop [
+    botonesSistema ponerBotonStartEnModoStop
+
+]
+
 { #category : 'game_logic' }
 SuperTatetiPartidaSistema >> procesarJugadaEnTablerito: indiceTablerito casilla: indiceCasilla [
-    | estadoAntes estadoDespues ganadorTablerito oponente perdedor |
+    | estadoAntes |
 
-    "1) Si ya se acabó el tiempo de X u O, cerramos por tiempo."
-    (relojSistema relojX termino or: [ relojSistema relojO termino ]) ifTrue: [
-        perdedor := (relojSistema relojX termino)
-            ifTrue: [ #x ]
-            ifFalse: [ #o ].
-        vistaPrincipal ifNotNil: [
-            vistaPrincipal finPorTiempoDe: perdedor ].
-        ^ false
-    ].
+    (self rechazarSiTerminoPorTiempo) ifTrue: [ ^ false ].
+    (self rechazarSiJuegoTerminado) ifTrue: [ ^ false ].
+    (self rechazarSiNoIniciado) ifTrue: [ ^ false ].
+    (self rechazarSiRelojPausado) ifTrue: [ ^ false ].
 
-    "2) Si el juego ya terminó (por tablero), no se acepta la jugada."
-    juegoSistema juegoTerminado ifTrue: [
-        vistaPrincipal ifNotNil: [ vistaPrincipal anunciarGanador ].
-        ^ false
-    ].
-
-    "3) Si el juego todavía no fue iniciado con Start, no permitimos jugar."
-    (botonesSistema juegoIniciado) ifFalse: [
-        vistaPrincipal ifNotNil: [ vistaPrincipal informarQueDebeIniciar ].
-        ^ false
-    ].
-
-    "4) Si el reloj está pausado (Stop), no permitimos jugar."
-    (relojSistema corriendo) ifFalse: [
-        vistaPrincipal ifNotNil: [
-            vistaPrincipal informarRelojPausado ].
-        ^ false
-    ].
-
-    "5) Recordamos el estado del tablerito antes de la jugada."
     estadoAntes := juegoSistema estadoDeTablerito: indiceTablerito.
 
-    "6) Intentamos jugar la jugada en el modelo, capturando posibles errores."
     [ juegoSistema jugarEnTablerito: indiceTablerito casilla: indiceCasilla ]
         on: Error
         do: [ :ex |
@@ -225,36 +273,90 @@ SuperTatetiPartidaSistema >> procesarJugadaEnTablerito: indiceTablerito casilla:
             ^ false
         ].
 
-    "7) Actualizamos la vista del tablero."
     vistaPrincipal ifNotNil: [
         vistaPrincipal actualizarVista ].
 
-    "8) Si el juego terminó (por tablero), detenemos relojes y anunciamos ganador."
     juegoSistema juegoTerminado ifTrue: [
-        relojSistema detener.
-        botonesSistema juegoIniciado: false.
-        botonesSistema ponerBotonStartEnModoStart.
-        vistaPrincipal ifNotNil: [
-            vistaPrincipal anunciarGanador ].
+        self finalizarPartidaPorTablero.
         ^ true
     ].
 
-    "9) Revisamos si con esta jugada se capturó el tablerito del tablero grande."
-    estadoDespues := juegoSistema estadoDeTablerito: indiceTablerito.
-    ((#(#x #o) includes: estadoDespues) and: [ estadoDespues ~= estadoAntes ]) ifTrue: [
-        ganadorTablerito := estadoDespues.
-        oponente := (ganadorTablerito = #x)
-            ifTrue: [ #o ]
-            ifFalse: [ #x ].
-        relojSistema penalizarA: oponente segundos: 10.
-        vistaPrincipal ifNotNil: [
-            vistaPrincipal actualizarTextoTiempo ].
-    ].
+    self aplicarPenalizacionSiCapturoTablerito: indiceTablerito estadoAntes: estadoAntes.
 
-    "10) Si el juego sigue, alternamos el jugador activo del reloj."
     relojSistema alternarJugador.
 
     ^ true
+
+]
+
+{ #category : 'updating' }
+SuperTatetiPartidaSistema >> procesarTickRelojes [
+    | quienPerdio |
+
+    quienPerdio := relojSistema tic.
+
+    relojSistema actualizarTextoTiempo.
+
+    quienPerdio ifNotNil: [
+        vistaPrincipal ifNotNil: [
+            vistaPrincipal finPorTiempoDe: quienPerdio ] ]
+
+]
+
+{ #category : 'game_logic' }
+SuperTatetiPartidaSistema >> rechazarSiJuegoTerminado [
+    juegoSistema juegoTerminado ifFalse: [ ^ false ].
+
+    vistaPrincipal ifNotNil: [
+        vistaPrincipal anunciarGanador ].
+
+    ^ true
+
+]
+
+{ #category : 'game_logic' }
+SuperTatetiPartidaSistema >> rechazarSiNoIniciado [
+    (botonesSistema juegoIniciado) ifTrue: [ ^ false ].
+
+    vistaPrincipal ifNotNil: [
+        vistaPrincipal informarQueDebeIniciar ].
+
+    ^ true
+
+]
+
+{ #category : 'game_logic' }
+SuperTatetiPartidaSistema >> rechazarSiRelojPausado [
+    (relojSistema corriendo) ifTrue: [ ^ false ].
+
+    vistaPrincipal ifNotNil: [
+        vistaPrincipal informarRelojPausado ].
+
+    ^ true
+
+]
+
+{ #category : 'game_logic' }
+SuperTatetiPartidaSistema >> rechazarSiTerminoPorTiempo [
+    | perdedor |
+
+    (relojSistema relojX termino or: [ relojSistema relojO termino ]) ifFalse: [
+        ^ false ].
+
+    perdedor := (relojSistema relojX termino)
+        ifTrue: [ #x ]
+        ifFalse: [ #o ].
+
+    vistaPrincipal ifNotNil: [
+        vistaPrincipal finPorTiempoDe: perdedor ].
+
+    ^ true
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiPartidaSistema >> relojCorriendo [
+    ^ relojSistema corriendo
 
 ]
 
@@ -292,8 +394,8 @@ SuperTatetiPartidaSistema >> resetPresionado [
     botonesSistema ponerBotonStartEnModoStart.
 
     "Actualizamos tiempos y tablero en pantalla."
+    self actualizarTextoTiempo.
     vistaPrincipal ifNotNil: [
-        vistaPrincipal actualizarTextoTiempo.
         vistaPrincipal actualizarVista ]
 
 ]
@@ -345,7 +447,6 @@ SuperTatetiPartidaSistema >> returnPresionado [
 
 { #category : 'events' }
 SuperTatetiPartidaSistema >> startPresionado [
-
     "Si el juego ya terminó, mensaje y salir."
     juegoSistema juegoTerminado ifTrue: [
         vistaPrincipal ifNotNil: [
@@ -365,8 +466,7 @@ SuperTatetiPartidaSistema >> startPresionado [
     (botonesSistema juegoIniciado) ifFalse: [
         botonesSistema juegoIniciado: true.
         relojSistema resetearAmbos.
-        vistaPrincipal ifNotNil: [
-            vistaPrincipal actualizarTextoTiempo ].
+        self actualizarTextoTiempo.
     ].
 
     "Aseguramos que el jugador activo del reloj coincida con el jugador del juego."
@@ -383,18 +483,6 @@ SuperTatetiPartidaSistema >> startPresionado [
 { #category : 'game_logic' }
 SuperTatetiPartidaSistema >> ticRelojes [
     ^ relojSistema tic
-
-]
-
-{ #category : 'accessing' }
-SuperTatetiPartidaSistema >> uiController [
-    ^ uiController
-
-]
-
-{ #category : 'accessing' }
-SuperTatetiPartidaSistema >> uiController: unMorph [
-    uiController := unMorph
 
 ]
 

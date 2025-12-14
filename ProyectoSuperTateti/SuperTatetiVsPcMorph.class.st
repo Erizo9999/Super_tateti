@@ -12,19 +12,11 @@ Class {
 
 { #category : 'events' }
 SuperTatetiVsPcMorph >> despuesDeJugadaHumano [
-    | juego reloj |
-
-    "Obtenemos los sistemas a través de PartidaSistema."
-    juego := partidaSistema juegoSistema.
-    reloj := partidaSistema relojSistema.
-
-    "Si el juego terminó o el reloj está pausado, no hace nada."
-    (juego juegoTerminado or: [ reloj corriendo not ]) ifTrue: [
+    (partidaSistema juegoTerminado or: [ partidaSistema relojCorriendo not ]) ifTrue: [
         ^ self
     ].
 
-    "Si ahora es el turno de la PC, dejamos que juegue."
-    (juego jugadorActual = simboloPc) ifTrue: [
+    (partidaSistema jugadorActual = simboloPc) ifTrue: [
         self jugarTurnoPc
     ]
 
@@ -41,20 +33,13 @@ SuperTatetiVsPcMorph >> initialize [
 
 { #category : 'game_logic' }
 SuperTatetiVsPcMorph >> jugarTurnoPc [
-    "Hace que la PC juegue una jugada válida al azar usando una estrategia."
+    | mov tIndex cIndex modelo |
 
-    | juego reloj mov tIndex cIndex modelo |
+    (partidaSistema juegoTerminado) ifTrue: [ ^ self ].
+    (partidaSistema jugadorActual = simboloPc) ifFalse: [ ^ self ].
+    (partidaSistema relojCorriendo) ifFalse: [ ^ self ].
 
-    "Obtenemos los sistemas a través de PartidaSistema."
-    juego := partidaSistema juegoSistema.
-    reloj := partidaSistema relojSistema.
-
-    (juego juegoTerminado) ifTrue: [ ^ self ].
-    (juego jugadorActual = simboloPc) ifFalse: [ ^ self ].
-    (reloj corriendo) ifFalse: [ ^ self ].
-
-    "Obtenemos el modelo SuperTateti desde el sistema de juego."
-    modelo := juego juego.
+    modelo := partidaSistema modeloDeJuego.
 
     mov := estrategiaPc elegirJugadaEn: modelo.
     mov isNil ifTrue: [ ^ self ].
@@ -62,8 +47,6 @@ SuperTatetiVsPcMorph >> jugarTurnoPc [
     tIndex := mov first.
     cIndex := mov second.
 
-    "Usamos la misma lógica de jugada que un clic normal,
-    pero como movimiento de PC (sin volver a llamar al hook de humano)."
     partidaSistema
         jugarMovimientoPcEnTablerito: tIndex
         casilla: cIndex
