@@ -5,7 +5,7 @@ Class {
 		'juegoSistema',
 		'relojSistema',
 		'botonesSistema',
-		'uiController'
+		'vistaPrincipal'
 	],
 	#category : 'ProyectoSuperTateti',
 	#package : 'ProyectoSuperTateti'
@@ -67,8 +67,8 @@ SuperTatetiPartidaSistema >> clicEnTablerito: indiceTablerito casilla: indiceCas
         procesarJugadaEnTablerito: indiceTablerito
         casilla: indiceCasilla.
 
-    (jugadaValida and: [ uiController notNil ]) ifTrue: [
-        uiController despuesDeJugadaHumano ]
+    (jugadaValida and: [ vistaPrincipal notNil ]) ifTrue: [
+        vistaPrincipal despuesDeJugadaHumano ]
 
 ]
 
@@ -81,7 +81,7 @@ SuperTatetiPartidaSistema >> configurarConJuegoSistema: unJuegoSistema
     juegoSistema := unJuegoSistema.
     relojSistema := unRelojSistema.
     botonesSistema := unBotonesSistema.
-    uiController := unMorph.
+    vistaPrincipal := unMorph.
 
     "Conectar los sistemas con este orquestador de partida."
     juegoSistema configurarController: self.
@@ -116,7 +116,8 @@ SuperTatetiPartidaSistema >> detenerReloj [
 { #category : 'events' }
 SuperTatetiPartidaSistema >> helpPresionado [
     juegoSistema juegoTerminado ifTrue: [
-        UIManager default inform: 'El juego ya terminó.'.
+        vistaPrincipal ifNotNil: [
+            vistaPrincipal informarJuegoTerminadoEnAyuda ].
         ^ self
     ].
 
@@ -124,8 +125,8 @@ SuperTatetiPartidaSistema >> helpPresionado [
     botonesSistema ayudaActiva: (botonesSistema ayudaActiva not).
 
     "Redibujamos todo según el nuevo estado de la ayuda."
-    uiController ifNotNil: [
-        uiController actualizarVista ]
+    vistaPrincipal ifNotNil: [
+        vistaPrincipal actualizarVista ]
 
 ]
 
@@ -133,7 +134,7 @@ SuperTatetiPartidaSistema >> helpPresionado [
 SuperTatetiPartidaSistema >> iniciarReloj [
     relojSistema
         iniciarRelojParaJuego: juegoSistema
-        conCallback: [ uiController ticRelojes ]
+        conCallback: [ vistaPrincipal ticRelojes ]
 
 ]
 
@@ -143,7 +144,7 @@ SuperTatetiPartidaSistema >> initialize [
     juegoSistema := nil.
     relojSistema := nil.
     botonesSistema := nil.
-    uiController := nil
+    vistaPrincipal := nil
 
 ]
 
@@ -181,33 +182,34 @@ SuperTatetiPartidaSistema >> jugarMovimientoPcEnTablerito: indiceTablerito casil
 
 { #category : 'game_logic' }
 SuperTatetiPartidaSistema >> procesarJugadaEnTablerito: indiceTablerito casilla: indiceCasilla [
-    | estadoAntes estadoDespues ganadorTablerito oponente perdedor boton |
+    | estadoAntes estadoDespues ganadorTablerito oponente perdedor |
 
     "1) Si ya se acabó el tiempo de X u O, cerramos por tiempo."
     (relojSistema relojX termino or: [ relojSistema relojO termino ]) ifTrue: [
         perdedor := (relojSistema relojX termino)
             ifTrue: [ #x ]
             ifFalse: [ #o ].
-        uiController ifNotNil: [
-            uiController finPorTiempoDe: perdedor ].
+        vistaPrincipal ifNotNil: [
+            vistaPrincipal finPorTiempoDe: perdedor ].
         ^ false
     ].
 
     "2) Si el juego ya terminó (por tablero), no se acepta la jugada."
     juegoSistema juegoTerminado ifTrue: [
-        uiController ifNotNil: [ uiController anunciarGanador ].
+        vistaPrincipal ifNotNil: [ vistaPrincipal anunciarGanador ].
         ^ false
     ].
 
     "3) Si el juego todavía no fue iniciado con Start, no permitimos jugar."
     (botonesSistema juegoIniciado) ifFalse: [
-        uiController ifNotNil: [ uiController informarQueDebeIniciar ].
+        vistaPrincipal ifNotNil: [ vistaPrincipal informarQueDebeIniciar ].
         ^ false
     ].
 
     "4) Si el reloj está pausado (Stop), no permitimos jugar."
     (relojSistema corriendo) ifFalse: [
-        UIManager default inform: 'El reloj está pausado. Presiona Start para seguir jugando.'.
+        vistaPrincipal ifNotNil: [
+            vistaPrincipal informarRelojPausado ].
         ^ false
     ].
 
@@ -218,23 +220,22 @@ SuperTatetiPartidaSistema >> procesarJugadaEnTablerito: indiceTablerito casilla:
     [ juegoSistema jugarEnTablerito: indiceTablerito casilla: indiceCasilla ]
         on: Error
         do: [ :ex |
-            UIManager default inform: ex messageText.
-            ^ false ].
+            vistaPrincipal ifNotNil: [
+                vistaPrincipal informarError: ex messageText ].
+            ^ false
+        ].
 
     "7) Actualizamos la vista del tablero."
-    uiController ifNotNil: [
-        uiController actualizarVista ].
+    vistaPrincipal ifNotNil: [
+        vistaPrincipal actualizarVista ].
 
     "8) Si el juego terminó (por tablero), detenemos relojes y anunciamos ganador."
     juegoSistema juegoTerminado ifTrue: [
         relojSistema detener.
         botonesSistema juegoIniciado: false.
-        boton := botonesSistema botonStart.
-        boton ifNotNil: [
-            boton label: 'Start'.
-            boton extent: 100@40 ].
-        uiController ifNotNil: [
-            uiController anunciarGanador ].
+        botonesSistema ponerBotonStartEnModoStart.
+        vistaPrincipal ifNotNil: [
+            vistaPrincipal anunciarGanador ].
         ^ true
     ].
 
@@ -246,8 +247,8 @@ SuperTatetiPartidaSistema >> procesarJugadaEnTablerito: indiceTablerito casilla:
             ifTrue: [ #o ]
             ifFalse: [ #x ].
         relojSistema penalizarA: oponente segundos: 10.
-        uiController ifNotNil: [
-            uiController actualizarTextoTiempo ].
+        vistaPrincipal ifNotNil: [
+            vistaPrincipal actualizarTextoTiempo ].
     ].
 
     "10) Si el juego sigue, alternamos el jugador activo del reloj."
@@ -271,11 +272,9 @@ SuperTatetiPartidaSistema >> relojSistema: unRelojSistema [
 
 { #category : 'events' }
 SuperTatetiPartidaSistema >> resetPresionado [
-    | boton |
-
     "Detenemos cualquier reloj que esté andando."
-    uiController ifNotNil: [
-        uiController detenerReloj ].
+    vistaPrincipal ifNotNil: [
+        vistaPrincipal detenerReloj ].
 
     "Marcamos que el juego ya no está en curso."
     botonesSistema juegoIniciado: false.
@@ -290,22 +289,19 @@ SuperTatetiPartidaSistema >> resetPresionado [
     botonesSistema ayudaActiva: true.
 
     "Volvemos el botón a 'Start' con tamaño fijo."
-    boton := botonesSistema botonStart.
-    boton ifNotNil: [
-        boton label: 'Start'.
-        boton extent: 100@40 ].
+    botonesSistema ponerBotonStartEnModoStart.
 
     "Actualizamos tiempos y tablero en pantalla."
-    uiController ifNotNil: [
-        uiController actualizarTextoTiempo.
-        uiController actualizarVista ]
+    vistaPrincipal ifNotNil: [
+        vistaPrincipal actualizarTextoTiempo.
+        vistaPrincipal actualizarVista ]
 
 ]
 
 { #category : 'events' }
 SuperTatetiPartidaSistema >> returnDeshabilitado [
-    UIManager default inform:
-        'La función Return está deshabilitada para esta partida.'
+    vistaPrincipal ifNotNil: [
+        vistaPrincipal informarReturnDeshabilitado ]
 
 ]
 
@@ -326,43 +322,42 @@ SuperTatetiPartidaSistema >> returnPresionado [
     "Deshace la última jugada, solo si el juego sigue en curso."
 
     juegoSistema juegoTerminado ifTrue: [
-        UIManager default inform:
-            'El juego ya terminó. No puedes deshacer jugadas.'.
+        vistaPrincipal ifNotNil: [
+            vistaPrincipal informarNoSePuedeDeshacerJuegoTerminado ].
         ^ self
     ].
 
     [ juegoSistema deshacerUltimaJugada ]
         on: Error
-        do: [ :ex | ^ UIManager default inform: ex messageText ].
+        do: [ :ex |
+            vistaPrincipal ifNotNil: [
+                vistaPrincipal informarError: ex messageText ].
+            ^ self
+        ].
 
     "Sincronizamos el jugador activo del reloj con el del juego."
     relojSistema jugadorActivo: juegoSistema jugadorActual.
 
-    uiController ifNotNil: [
-        uiController actualizarVista ]
+    vistaPrincipal ifNotNil: [
+        vistaPrincipal actualizarVista ]
 
 ]
 
 { #category : 'events' }
 SuperTatetiPartidaSistema >> startPresionado [
-    | boton |
 
     "Si el juego ya terminó, mensaje y salir."
     juegoSistema juegoTerminado ifTrue: [
-        UIManager default inform:
-            'El juego ya terminó. Debes volver al menú para iniciar una nueva partida.'.
+        vistaPrincipal ifNotNil: [
+            vistaPrincipal informarJuegoTerminadoDebeVolverAlMenu ].
         ^ self
     ].
 
-    boton := botonesSistema botonStart.
-
     "Si el reloj ya está corriendo → lo pausamos."
     (relojSistema corriendo) ifTrue: [
-        uiController ifNotNil: [
-            uiController detenerReloj ].
-        boton ifNotNil: [
-            boton label: 'Start'.
-            boton extent: 100@40 ].
+        vistaPrincipal ifNotNil: [
+            vistaPrincipal detenerReloj ].
+        botonesSistema ponerBotonStartEnModoStart.
         ^ self
     ].
 
@@ -370,20 +365,18 @@ SuperTatetiPartidaSistema >> startPresionado [
     (botonesSistema juegoIniciado) ifFalse: [
         botonesSistema juegoIniciado: true.
         relojSistema resetearAmbos.
-        uiController ifNotNil: [
-            uiController actualizarTextoTiempo ].
+        vistaPrincipal ifNotNil: [
+            vistaPrincipal actualizarTextoTiempo ].
     ].
 
     "Aseguramos que el jugador activo del reloj coincida con el jugador del juego."
     relojSistema jugadorActivo: juegoSistema jugadorActual.
 
     "Arrancamos el proceso de tiempo y ponemos el botón en Stop."
-    boton ifNotNil: [
-        boton label: 'Stop'.
-        boton extent: 100@40 ].
+    botonesSistema ponerBotonStartEnModoStop.
 
-    uiController ifNotNil: [
-        uiController iniciarReloj ]
+    vistaPrincipal ifNotNil: [
+        vistaPrincipal iniciarReloj ]
 
 ]
 
@@ -405,9 +398,21 @@ SuperTatetiPartidaSistema >> uiController: unMorph [
 
 ]
 
+{ #category : 'accessing' }
+SuperTatetiPartidaSistema >> vistaPrincipal [
+    ^ vistaPrincipal
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiPartidaSistema >> vistaPrincipal: unMorph [
+    vistaPrincipal := unMorph
+
+]
+
 { #category : 'events' }
 SuperTatetiPartidaSistema >> volverAlInicio [
-    uiController ifNotNil: [
-        uiController volverAlInicio ]
+    vistaPrincipal ifNotNil: [
+        vistaPrincipal volverAlInicio ]
 
 ]

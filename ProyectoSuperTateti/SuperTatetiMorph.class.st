@@ -195,9 +195,49 @@ SuperTatetiMorph >> finPorTiempoDe: unSimbolo [
 ]
 
 { #category : 'helpers' }
+SuperTatetiMorph >> informarError: unMensaje [
+    UIManager default inform: unMensaje
+
+]
+
+{ #category : 'helpers' }
+SuperTatetiMorph >> informarJuegoTerminadoDebeVolverAlMenu [
+    UIManager default inform:
+        'El juego ya terminó. Debes volver al menú para iniciar una nueva partida.'
+
+]
+
+{ #category : 'helpers' }
+SuperTatetiMorph >> informarJuegoTerminadoEnAyuda [
+    UIManager default inform: 'El juego ya terminó.'
+
+]
+
+{ #category : 'helpers' }
+SuperTatetiMorph >> informarNoSePuedeDeshacerJuegoTerminado [
+    UIManager default inform:
+        'El juego ya terminó. No puedes deshacer jugadas.'
+
+]
+
+{ #category : 'helpers' }
 SuperTatetiMorph >> informarQueDebeIniciar [
     "Muestra un mensaje indicando que hay que presionar Start antes de jugar."
     UIManager default inform: 'Debes presionar Start para comenzar el juego.'.
+
+]
+
+{ #category : 'helpers' }
+SuperTatetiMorph >> informarRelojPausado [
+    UIManager default inform:
+        'El reloj está pausado. Presiona Start para seguir jugando.'
+
+]
+
+{ #category : 'helpers' }
+SuperTatetiMorph >> informarReturnDeshabilitado [
+    UIManager default inform:
+        'La función Return está deshabilitada para esta partida.'
 
 ]
 

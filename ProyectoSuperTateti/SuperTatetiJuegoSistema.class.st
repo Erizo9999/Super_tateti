@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'juego',
 		'tableroPanel',
-		'uiController'
+		'partidaSistema'
 	],
 	#category : 'ProyectoSuperTateti',
 	#package : 'ProyectoSuperTateti'
@@ -18,12 +18,14 @@ SuperTatetiJuegoSistema >> actualizarVistaConAyuda: unBooleano [
 
 { #category : 'events' }
 SuperTatetiJuegoSistema >> clicEnTablerito: indiceTablerito casilla: indiceCasilla [
-    "Puente entre el tablero visual (SuperTatetiBoardPanel) y el Morph de UI.
+    "Puente entre el tablero visual (SuperTatetiBoardPanel) y la Partida.
     El BoardPanel envía el clic a este JuegoSistema y aquí lo reenviamos
-    al uiController (por ejemplo, un SuperTatetiMorph)."
+    al orquestador de partida (SuperTatetiPartidaSistema)."
 
-    uiController ifNotNil: [
-        ^ uiController clicEnTablerito: indiceTablerito casilla: indiceCasilla
+    partidaSistema ifNotNil: [
+        ^ partidaSistema
+            clicEnTablerito: indiceTablerito
+            casilla: indiceCasilla
     ].
 
 ]
@@ -33,9 +35,8 @@ SuperTatetiJuegoSistema >> configurarController: unController [
     "El controller de alto nivel es unController (SuperTatetiPartidaSistema),
     pero el tablero habla primero con este JuegoSistema."
 
-    uiController := unController.
-    tableroPanel controller: self.
-    tableroPanel juego: juego
+    partidaSistema := unController.
+    tableroPanel controller: self
 
 ]
 
@@ -49,6 +50,14 @@ SuperTatetiJuegoSistema >> crearBoardPanel [
 SuperTatetiJuegoSistema >> deshacerUltimaJugada [ 
     "Pide al modelo que deshaga la última jugada."
     ^ juego deshacerUltimaJugada
+]
+
+{ #category : 'accessing' }
+SuperTatetiJuegoSistema >> esMovimientoValidoEnTablerito: indiceTablerito casilla: indiceCasilla [
+    ^ juego
+        esMovimientoValidoEnTablerito: indiceTablerito
+        casilla: indiceCasilla
+
 ]
 
 { #category : 'accessing' }
@@ -74,7 +83,7 @@ SuperTatetiJuegoSistema >> initialize [
     super initialize.
     juego := SuperTateti new.
     tableroPanel := SuperTatetiBoardPanel new.
-    uiController := nil.
+    partidaSistema := nil.
 
 ]
 
@@ -102,17 +111,27 @@ SuperTatetiJuegoSistema >> jugarEnTablerito: indiceTablerito casilla: indiceCasi
 ]
 
 { #category : 'accessing' }
+SuperTatetiJuegoSistema >> partidaSistema [
+    ^ partidaSistema
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiJuegoSistema >> partidaSistema: unPartidaSistema [
+    partidaSistema := unPartidaSistema
+
+]
+
+{ #category : 'accessing' }
 SuperTatetiJuegoSistema >> reiniciar [
     juego reiniciar
 
 ]
 
 { #category : 'accessing' }
-SuperTatetiJuegoSistema >> uiController [
-    ^ uiController
-]
+SuperTatetiJuegoSistema >> valorEnTablerito: indiceTablerito casilla: indiceCasilla [
+    ^ juego
+        valorEnTablerito: indiceTablerito
+        casilla: indiceCasilla
 
-{ #category : 'accessing' }
-SuperTatetiJuegoSistema >> uiController: unMorph [
-    uiController := unMorph
 ]

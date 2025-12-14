@@ -17,8 +17,10 @@ SuperTatetiBoardPanel >> actualizarBotonDeTablerito: indiceTablerito casilla: in
 
     btn := (botones at: indiceTablerito) at: indiceCasilla.
 
-    "Valor que tiene esa casilla en el modelo (#x, #o o nil)"
-    valor := juego valorEnTablerito: indiceTablerito casilla: indiceCasilla.
+    "Valor que tiene esa casilla en el modelo (#x, #o o nil) vía el controller"
+    valor := controller
+        valorEnTablerito: indiceTablerito
+        casilla: indiceCasilla.
 
     "Limpio cualquier texto viejo que tenga el botón"
     btn submorphs do: [:m | m delete].
@@ -179,18 +181,6 @@ SuperTatetiBoardPanel >> initialize [
 ]
 
 { #category : 'accessing' }
-SuperTatetiBoardPanel >> juego [
-    ^ juego
-
-]
-
-{ #category : 'accessing' }
-SuperTatetiBoardPanel >> juego: unJuego [
-    juego := unJuego
-
-]
-
-{ #category : 'accessing' }
 SuperTatetiBoardPanel >> panel [
     ^ panel
 
@@ -200,9 +190,11 @@ SuperTatetiBoardPanel >> panel [
 SuperTatetiBoardPanel >> resaltarMovimientosValidos [
     1 to: 9 do: [:t |
         1 to: 9 do: [:c |
-            (juego esMovimientoValidoEnTablerito: t casilla: c) ifTrue: [
-                | btn |
-                btn := (botones at: t) at: c.
-                btn color: Color yellow ] ] ].
+            (controller
+                esMovimientoValidoEnTablerito: t
+                casilla: c) ifTrue: [
+                    | btn |
+                    btn := (botones at: t) at: c.
+                    btn color: Color yellow ] ] ].
 
 ]

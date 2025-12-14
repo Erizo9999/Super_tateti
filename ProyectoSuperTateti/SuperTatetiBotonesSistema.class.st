@@ -83,6 +83,22 @@ SuperTatetiBotonesSistema >> juegoIniciado: unBooleano [
 ]
 
 { #category : 'events' }
+SuperTatetiBotonesSistema >> ponerBotonStartEnModoStart [
+    botonStart ifNotNil: [
+        botonStart label: 'Start'.
+        botonStart extent: 100@40 ]
+
+]
+
+{ #category : 'events' }
+SuperTatetiBotonesSistema >> ponerBotonStartEnModoStop [
+    botonStart ifNotNil: [
+        botonStart label: 'Stop'.
+        botonStart extent: 100@40 ]
+
+]
+
+{ #category : 'events' }
 SuperTatetiBotonesSistema >> resetPresionado [ 
     controller resetPresionado
 ]
