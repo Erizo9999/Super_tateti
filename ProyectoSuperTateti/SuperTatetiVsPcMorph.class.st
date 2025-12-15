@@ -33,22 +33,22 @@ SuperTatetiVsPcMorph >> initialize [
 
 { #category : 'game_logic' }
 SuperTatetiVsPcMorph >> jugarTurnoPc [
-    | mov tIndex cIndex modelo |
+	| mov tIndex cIndex modelo |
 
-    (partidaSistema juegoTerminado) ifTrue: [ ^ self ].
-    (partidaSistema jugadorActual = simboloPc) ifFalse: [ ^ self ].
-    (partidaSistema relojCorriendo) ifFalse: [ ^ self ].
+	(partidaSistema juegoTerminado) ifTrue: [ ^ self ].
+	(partidaSistema jugadorActual = simboloPc) ifFalse: [ ^ self ].
+	(partidaSistema relojCorriendo) ifFalse: [ ^ self ].
 
-    modelo := partidaSistema modeloDeJuego.
+	modelo := partidaSistema modeloDeJuego.
 
-    mov := estrategiaPc elegirJugadaEn: modelo.
-    mov isNil ifTrue: [ ^ self ].
+	mov := estrategiaPc elegirJugadaEn: modelo.
+	mov ifNil: [ ^ self ].
 
-    tIndex := mov first.
-    cIndex := mov second.
+	tIndex := mov first.
+	cIndex := mov second.
 
-    partidaSistema
-        jugarMovimientoPcEnTablerito: tIndex
-        casilla: cIndex
+	partidaSistema
+		jugarMovimientoPcEnTablerito: tIndex
+		casilla: cIndex
 
 ]

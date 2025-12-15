@@ -32,11 +32,10 @@ SuperTateti >> actualizarEstadoDeTablerito: indiceTablerito [
 
 { #category : 'game_logic' }
 SuperTateti >> actualizarGanadorGeneral [
-    | g |
-    g := self ganadorEnArregloDe9: estadoTableritos.
-    ganador := (#(#x #o) includes: g)
-        ifTrue: [ g ]
-        ifFalse: [ nil ].
+	| g |
+	g := self ganadorEnArregloDe9: estadoTableritos.
+	ganador := nil.
+	(#(#x #o) includes: g) ifTrue: [ ganador := g ]
 
 ]
 
@@ -149,16 +148,19 @@ SuperTateti >> ganadorEnArregloDe9: unArregloDe9 [
 
 { #category : 'game_logic' }
 SuperTateti >> ganadorEnLinea: tripleta [
-    | a b c |
-    a := tripleta first.
-    a isNil ifTrue: [ ^ nil ].
-    b := tripleta second.
-    c := tripleta third.
+	| a b c |
 
-    ((a = b and: [ b = c ]) and: [ #(#x #o) includes: a ])
-        ifTrue: [ ^ a ].
+	a := tripleta first.
+	a ifNil: [ ^ nil ].
 
-    ^ nil
+	b := tripleta second.
+	c := tripleta third.
+
+	(a = b) ifFalse: [ ^ nil ].
+	(b = c) ifFalse: [ ^ nil ].
+	(#(#x #o) includes: a) ifFalse: [ ^ nil ].
+
+	^ a
 
 ]
 
@@ -215,6 +217,20 @@ SuperTateti >> jugarEnTablerito: indiceTablerito casilla: indiceCasilla [
             proximoTablerito := nil ].
 
     self cambiarJugador.
+
+]
+
+{ #category : 'game_logic' }
+SuperTateti >> movimientosValidos [
+	| jugadas |
+	jugadas := OrderedCollection new.
+
+	1 to: 9 do: [:t |
+		1 to: 9 do: [:c |
+			(self esMovimientoValidoEnTablerito: t casilla: c)
+				ifTrue: [ jugadas add: { t. c } ] ] ].
+
+	^ jugadas
 
 ]
 

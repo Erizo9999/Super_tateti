@@ -2,7 +2,6 @@ Class {
 	#name : 'SuperTatetiMorph',
 	#superclass : 'Object',
 	#instVars : [
-		'window',
 		'mainPanel',
 		'app',
 		'partidaSistema'
@@ -107,34 +106,25 @@ SuperTatetiMorph >> crearPanelTiemposJugadores [
 ]
 
 { #category : 'building' }
-SuperTatetiMorph >> crearTablero [
-    "Arma el layout principal del juego: barra arriba, tablero al centro y tiempos abajo."
-    | topBar boardPanel panelTiemposLocal |
+SuperTatetiMorph >> crearTableroEn: unaVentana [
+	| topBar boardPanel panelTiemposLocal |
 
-    mainPanel := self crearMainPanel.
-    topBar := self crearTopBarPanel.
-    boardPanel := self crearBoardPanel.
-    panelTiemposLocal := self crearPanelTiemposJugadores.
+	mainPanel := self crearMainPanel.
+	topBar := self crearTopBarPanel.
+	boardPanel := self crearBoardPanel.
+	panelTiemposLocal := self crearPanelTiemposJugadores.
 
-    mainPanel addMorph: panelTiemposLocal.
-    mainPanel addMorph: boardPanel.
-    mainPanel addMorph: topBar.
+	mainPanel addMorph: panelTiemposLocal.
+	mainPanel addMorph: boardPanel.
+	mainPanel addMorph: topBar.
 
-
-    window addMorph: mainPanel frame: (0@0 corner: 1@1).
+	unaVentana addMorph: mainPanel frame: (0@0 corner: 1@1)
 
 ]
 
 { #category : 'building' }
 SuperTatetiMorph >> crearTopBarPanel [
     ^ partidaSistema crearTopBarPanel
-
-]
-
-{ #category : 'building' }
-SuperTatetiMorph >> crearVentana [
-    window := SystemWindow labelled: 'Tic Tac Toe'.
-    window extent: 425@450.
 
 ]
 
@@ -181,7 +171,7 @@ SuperTatetiMorph >> informarError: unMensaje [
 { #category : 'helpers' }
 SuperTatetiMorph >> informarJuegoTerminadoDebeVolverAlMenu [
     UIManager default inform:
-        'El juego ya terminó. Debes volver al menú para iniciar una nueva partida.'
+        'El juego ya terminó.'
 
 ]
 
@@ -227,20 +217,14 @@ SuperTatetiMorph >> iniciarReloj [
 
 { #category : 'initialization' }
 SuperTatetiMorph >> initialize [
-    super initialize.
-
-    window := nil.
-    mainPanel := nil.
-    app := nil.
-    partidaSistema := nil
+	super initialize.
 
 ]
 
 { #category : 'initialization' }
 SuperTatetiMorph >> instalarEnVentana: unaVentana [
-    window := unaVentana.
-    self crearTablero.
-    self actualizarVista.
+	self crearTableroEn: unaVentana.
+	self actualizarVista
 
 ]
 
@@ -262,31 +246,20 @@ SuperTatetiMorph >> mainPanel [
 ]
 
 { #category : 'initialization' }
-SuperTatetiMorph >> openInWorld [
-    | juegoSistema relojSistema botonesSistema |
+SuperTatetiMorph >> prepararPartidaConReturnHabilitado: unBooleano [
+	| juegoSistema relojSistema botonesSistema |
 
-    "Crear la ventana del juego."
-    self crearVentana.
+	juegoSistema := SuperTatetiJuegoSistema new.
+	relojSistema := SuperTatetiRelojSistema new.
+	botonesSistema := SuperTatetiBotonesSistema new.
 
-    "Crear los sistemas de juego, reloj y botones."
-    juegoSistema := SuperTatetiJuegoSistema new.
-    relojSistema := SuperTatetiRelojSistema new.
-    botonesSistema := SuperTatetiBotonesSistema new.
+	self
+		configurarConJuegoSistema: juegoSistema
+		relojSistema: relojSistema
+		botonesSistema: botonesSistema.
 
-    "Configurar la partida (orquestador) con estos sistemas."
-    self
-        configurarConJuegoSistema: juegoSistema
-        relojSistema: relojSistema
-        botonesSistema: botonesSistema.
+	self returnHabilitado: unBooleano
 
-    "En este modo (1 vs 1) dejamos Return habilitado."
-    self returnHabilitado: true.
-
-    "Instalar el tablero en la misma ventana."
-    self instalarEnVentana: window.
-
-    "Mostrar la ventana en el mundo."
-    window openInWorld.
 ]
 
 { #category : 'accessing' }

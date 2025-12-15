@@ -64,7 +64,6 @@ SuperTatetiRelojSistema >> iniciarRelojParaJuego: unJuego conCallback: unBloque 
 SuperTatetiRelojSistema >> initialize [
     super initialize.
     relojTurnos := RelojTurnos new.
-    procesoReloj := nil.
     panel := SuperTatetiRelojPanel new.
     panel relojTurnos: relojTurnos.
 

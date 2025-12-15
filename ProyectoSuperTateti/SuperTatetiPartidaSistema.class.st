@@ -129,6 +129,16 @@ SuperTatetiPartidaSistema >> crearTopBarPanel [
 ]
 
 { #category : 'game_logic' }
+SuperTatetiPartidaSistema >> debeRechazarJugada [
+	(self rechazarSiTerminoPorTiempo) ifTrue: [ ^ true ].
+	(self rechazarSiJuegoTerminado) ifTrue: [ ^ true ].
+	(self rechazarSiNoIniciado) ifTrue: [ ^ true ].
+	(self rechazarSiRelojPausado) ifTrue: [ ^ true ].
+	^ false
+
+]
+
+{ #category : 'game_logic' }
 SuperTatetiPartidaSistema >> detenerReloj [
     relojSistema detener
 
@@ -148,6 +158,20 @@ SuperTatetiPartidaSistema >> finalizarPartidaPorTablero [
 
     vistaPrincipal ifNotNil: [
         vistaPrincipal anunciarGanador ]
+
+]
+
+{ #category : 'game_logic' }
+SuperTatetiPartidaSistema >> finalizarTurnoTrasJugadaEnTablerito: indiceTablerito estadoAntes: estadoAntes [
+	vistaPrincipal ifNotNil: [ vistaPrincipal actualizarVista ].
+
+	juegoSistema juegoTerminado ifTrue: [
+		self finalizarPartidaPorTablero.
+		^ true ].
+
+	self aplicarPenalizacionSiCapturoTablerito: indiceTablerito estadoAntes: estadoAntes.
+	relojSistema alternarJugador.
+	^ true
 
 ]
 
@@ -185,10 +209,17 @@ SuperTatetiPartidaSistema >> iniciarReloj [
 { #category : 'initialization' }
 SuperTatetiPartidaSistema >> initialize [
     super initialize.
-    juegoSistema := nil.
-    relojSistema := nil.
-    botonesSistema := nil.
-    vistaPrincipal := nil
+]
+
+{ #category : 'game_logic' }
+SuperTatetiPartidaSistema >> intentarJugarEnTablerito: indiceTablerito casilla: indiceCasilla [
+	[ juegoSistema jugarEnTablerito: indiceTablerito casilla: indiceCasilla ]
+		on: Error
+		do: [ :ex |
+			vistaPrincipal ifNotNil: [
+				vistaPrincipal informarError: ex messageText ].
+			^ false ].
+	^ true
 
 ]
 
@@ -256,36 +287,16 @@ SuperTatetiPartidaSistema >> ponerBotonStartEnModoStop [
 
 { #category : 'game_logic' }
 SuperTatetiPartidaSistema >> procesarJugadaEnTablerito: indiceTablerito casilla: indiceCasilla [
-    | estadoAntes |
+	| estadoAntes |
 
-    (self rechazarSiTerminoPorTiempo) ifTrue: [ ^ false ].
-    (self rechazarSiJuegoTerminado) ifTrue: [ ^ false ].
-    (self rechazarSiNoIniciado) ifTrue: [ ^ false ].
-    (self rechazarSiRelojPausado) ifTrue: [ ^ false ].
+	(self debeRechazarJugada) ifTrue: [ ^ false ].
 
-    estadoAntes := juegoSistema estadoDeTablerito: indiceTablerito.
+	estadoAntes := juegoSistema estadoDeTablerito: indiceTablerito.
 
-    [ juegoSistema jugarEnTablerito: indiceTablerito casilla: indiceCasilla ]
-        on: Error
-        do: [ :ex |
-            vistaPrincipal ifNotNil: [
-                vistaPrincipal informarError: ex messageText ].
-            ^ false
-        ].
+	(self intentarJugarEnTablerito: indiceTablerito casilla: indiceCasilla)
+		ifFalse: [ ^ false ].
 
-    vistaPrincipal ifNotNil: [
-        vistaPrincipal actualizarVista ].
-
-    juegoSistema juegoTerminado ifTrue: [
-        self finalizarPartidaPorTablero.
-        ^ true
-    ].
-
-    self aplicarPenalizacionSiCapturoTablerito: indiceTablerito estadoAntes: estadoAntes.
-
-    relojSistema alternarJugador.
-
-    ^ true
+	^ self finalizarTurnoTrasJugadaEnTablerito: indiceTablerito estadoAntes: estadoAntes
 
 ]
 

@@ -13,10 +13,10 @@ Class {
 
 { #category : 'game_logic' }
 RelojTurnos >> alternarJugador [
-    "Cambia el jugador activo: de X a O o de O a X."
-    jugadorActivo = #x
-        ifTrue: [ jugadorActivo := #o ]
-        ifFalse: [ jugadorActivo := #x ].
+	"Cambia el jugador activo: de X a O o de O a X."
+	jugadorActivo := (jugadorActivo = #x)
+		ifTrue: [ #o ]
+		ifFalse: [ #x ]
 
 ]
 
@@ -75,17 +75,18 @@ RelojTurnos >> jugadorActivo: unSimbolo [
 
 { #category : 'game_logic' }
 RelojTurnos >> penalizarA: unSimbolo segundos: unNumero [
-    "Resta segundos al reloj del jugador indicado (#x o #o)."
+	| reloj |
+	reloj := self relojDe: unSimbolo.
+	reloj ifNil: [ ^ self ].
+	reloj restarSegundos: unNumero
 
-    unSimbolo = #x ifTrue: [
-        relojX restarSegundos: unNumero.
-        ^ self
-    ].
+]
 
-    unSimbolo = #o ifTrue: [
-        relojO restarSegundos: unNumero.
-        ^ self
-    ].
+{ #category : 'accessing' }
+RelojTurnos >> relojDe: unSimbolo [
+	unSimbolo = #x ifTrue: [ ^ relojX ].
+	unSimbolo = #o ifTrue: [ ^ relojO ].
+	^ nil
 
 ]
 
@@ -113,31 +114,26 @@ RelojTurnos >> resetearAmbos [
 
 { #category : 'game_logic' }
 RelojTurnos >> tic [
-    "Resta un segundo al reloj del jugador activo si está corriendo.
-    Devuelve:
-       - #x si se quedó sin tiempo X,
-       - #o si se quedó sin tiempo O,
-       - nil si nadie se quedó sin tiempo todavía."
+	| reloj |
 
-    corriendo ifFalse: [ ^ nil ].
+	"Resta un segundo al reloj del jugador activo si está corriendo.
+	Devuelve:
+	   - #x si se quedó sin tiempo X,
+	   - #o si se quedó sin tiempo O,
+	   - nil si nadie se quedó sin tiempo todavía."
 
-    jugadorActivo = #x
-        ifTrue: [
-            relojX decrementarUnSegundo.
-            (relojX termino) ifTrue: [
-                corriendo := false.
-                ^ #x ].
-            ^ nil ].
+	corriendo ifFalse: [ ^ nil ].
 
-    jugadorActivo = #o
-        ifTrue: [
-            relojO decrementarUnSegundo.
-            (relojO termino) ifTrue: [
-                corriendo := false.
-                ^ #o ].
-            ^ nil ].
+	reloj := self relojDe: jugadorActivo.
+	reloj ifNil: [ ^ nil ].
 
-    ^ nil.
+	reloj decrementarUnSegundo.
+
+	reloj termino ifTrue: [
+		corriendo := false.
+		^ jugadorActivo ].
+
+	^ nil
 
 ]
 

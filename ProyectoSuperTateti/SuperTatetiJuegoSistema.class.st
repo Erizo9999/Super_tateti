@@ -12,10 +12,7 @@ Class {
 
 { #category : 'updating' }
 SuperTatetiJuegoSistema >> actualizarVistaConAyuda: unBooleano [
-    tableroPanel actualizarVista.
-
-    unBooleano ifTrue: [
-        tableroPanel resaltarCasillas: self movimientosValidos ]
+	tableroPanel actualizarVistaConAyuda: unBooleano
 
 ]
 
@@ -86,7 +83,6 @@ SuperTatetiJuegoSistema >> initialize [
     super initialize.
     juego := SuperTateti new.
     tableroPanel := SuperTatetiBoardPanel new.
-    partidaSistema := nil.
 
 ]
 
@@ -115,16 +111,7 @@ SuperTatetiJuegoSistema >> jugarEnTablerito: indiceTablerito casilla: indiceCasi
 
 { #category : 'game_logic' }
 SuperTatetiJuegoSistema >> movimientosValidos [
-    | jugadas |
-
-    jugadas := OrderedCollection new.
-
-    1 to: 9 do: [:t |
-        1 to: 9 do: [:c |
-            (juego esMovimientoValidoEnTablerito: t casilla: c)
-                ifTrue: [ jugadas add: { t. c } ] ] ].
-
-    ^ jugadas
+	^ juego movimientosValidos
 
 ]
 

@@ -47,7 +47,10 @@ SuperTatetiBoardPanel >> actualizarVista [
 
 { #category : 'updating' }
 SuperTatetiBoardPanel >> actualizarVistaConAyuda: unBooleano [
-    self actualizarVista
+	self actualizarVista.
+
+	unBooleano ifTrue: [
+		self resaltarCasillas: controller movimientosValidos ]
 
 ]
 
@@ -166,18 +169,13 @@ SuperTatetiBoardPanel >> crearGapFila [
 
 { #category : 'building' }
 SuperTatetiBoardPanel >> inicializarBotones [
-    botones := Array new: 9.
-    1 to: 9 do: [:t | botones at: t put: (Array new: 9) ].
+	botones := (1 to: 9) collect: [:i | Array new: 9 ].
 
 ]
 
 { #category : 'initialization' }
 SuperTatetiBoardPanel >> initialize [
-    super initialize.
-    juego := nil.
-    controller := nil.
-    botones := nil.
-    panel := nil.
+	super initialize
 
 ]
 

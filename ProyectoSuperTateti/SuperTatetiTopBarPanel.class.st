@@ -84,9 +84,6 @@ SuperTatetiTopBarPanel >> crearTopBarPanel [
 { #category : 'initialization' }
 SuperTatetiTopBarPanel >> initialize [
     super initialize.
-    controller := nil.
-    panel := nil.
-
 ]
 
 { #category : 'accessing' }

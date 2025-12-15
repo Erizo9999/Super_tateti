@@ -12,38 +12,32 @@ Class {
 }
 
 { #category : 'updating' }
+SuperTatetiRelojPanel >> actualizarCaja: unaCaja conTexto: unString [
+	| label posX posY |
+	unaCaja submorphs do: [:m | m delete ].
+
+	label := StringMorph contents: unString.
+	label color: Color black.
+	unaCaja addMorph: label.
+
+	posX := (unaCaja extent x - label extent x) / 2.
+	posY := (unaCaja extent y - label extent y) / 2.
+	label position: posX @ posY
+
+]
+
+{ #category : 'updating' }
 SuperTatetiRelojPanel >> actualizarTextoTiempo [
-    "Actualiza los textos de los relojes de X y O en sus cajas de tiempo."
+	| textoX textoO |
 
-    | textoX textoO labelX labelO posX posY |
+	relojTurnos ifNil: [ ^ self ].
+	(cajaTiempoX isNil or: [ cajaTiempoO isNil ]) ifTrue: [ ^ self ].
 
-    "Si todavía no hay reloj o cajas, no hacemos nada."
-    relojTurnos ifNil: [ ^ self ].
-    (cajaTiempoX isNil or: [ cajaTiempoO isNil ]) ifTrue: [ ^ self ].
+	textoX := relojTurnos tiempoComoStringPara: #x.
+	textoO := relojTurnos tiempoComoStringPara: #o.
 
-    "Textos en formato 'MM:SS'."
-    textoX := relojTurnos tiempoComoStringPara: #x.
-    textoO := relojTurnos tiempoComoStringPara: #o.
-
-    "-------- Caja del jugador X --------"
-    cajaTiempoX submorphs do: [:m | m delete].
-    labelX := StringMorph contents: textoX.
-    labelX color: Color black.
-    cajaTiempoX addMorph: labelX.
-
-    posX := (cajaTiempoX extent x - labelX extent x) / 2.
-    posY := (cajaTiempoX extent y - labelX extent y) / 2.
-    labelX position: posX @ posY.
-
-    "-------- Caja del jugador O --------"
-    cajaTiempoO submorphs do: [:m | m delete].
-    labelO := StringMorph contents: textoO.
-    labelO color: Color black.
-    cajaTiempoO addMorph: labelO.
-
-    posX := (cajaTiempoO extent x - labelO extent x) / 2.
-    posY := (cajaTiempoO extent y - labelO extent y) / 2.
-    labelO position: posX @ posY.
+	self actualizarCaja: cajaTiempoX conTexto: textoX.
+	self actualizarCaja: cajaTiempoO conTexto: textoO
 
 ]
 
@@ -143,9 +137,6 @@ SuperTatetiRelojPanel >> crearPanelTiemposJugadores [
 { #category : 'initialization' }
 SuperTatetiRelojPanel >> initialize [
     super initialize.
-    panel := nil.
-    cajaTiempoX := nil.
-    cajaTiempoO := nil.
 
 ]
 

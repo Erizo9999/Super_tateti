@@ -60,13 +60,11 @@ SuperTatetiBotonesSistema >> crearTopBarPanel [
 { #category : 'initialization' }
 SuperTatetiBotonesSistema >> initialize [
     super initialize.
-    controller := nil.
     topBarPanel := SuperTatetiTopBarPanel new.
 
     returnHabilitado := true.
     ayudaActiva := true.
     juegoIniciado := false.
-    botonStart := nil.
 
 ]
 
