@@ -57,18 +57,6 @@ SuperTatetiPartidaSistema >> ayudaActiva: unBooleano [
 ]
 
 { #category : 'accessing' }
-SuperTatetiPartidaSistema >> botonStart [
-    ^ botonesSistema botonStart
-
-]
-
-{ #category : 'accessing' }
-SuperTatetiPartidaSistema >> botonStart: unBoton [
-    botonesSistema botonStart: unBoton
-
-]
-
-{ #category : 'accessing' }
 SuperTatetiPartidaSistema >> botonesSistema [
     ^ botonesSistema
 
@@ -95,18 +83,19 @@ SuperTatetiPartidaSistema >> clicEnTablerito: indiceTablerito casilla: indiceCas
 
 { #category : 'initialization' }
 SuperTatetiPartidaSistema >> configurarConJuegoSistema: unJuegoSistema
-        relojSistema: unRelojSistema
-        botonesSistema: unBotonesSistema
-        uiController: unMorph [
+		relojSistema: unRelojSistema
+		botonesSistema: unBotonesSistema
+		uiController: unMorph [
 
-    juegoSistema := unJuegoSistema.
-    relojSistema := unRelojSistema.
-    botonesSistema := unBotonesSistema.
-    vistaPrincipal := unMorph.
+	juegoSistema := unJuegoSistema.
+	relojSistema := unRelojSistema.
+	botonesSistema := unBotonesSistema.
+	vistaPrincipal := unMorph.
 
-    "Conectar los sistemas con este orquestador de partida."
-    juegoSistema configurarController: self.
-    botonesSistema controller: self
+	juegoSistema configurarController: self.
+
+	"BotonesSistema es el controller real de la top bar, y delega en mí."
+	botonesSistema controller: self
 
 ]
 
@@ -175,26 +164,27 @@ SuperTatetiPartidaSistema >> finalizarTurnoTrasJugadaEnTablerito: indiceTablerit
 
 ]
 
-{ #category : 'accessing' }
-SuperTatetiPartidaSistema >> ganadorActual [
-    ^ juegoSistema ganador
+{ #category : 'game_logic' }
+SuperTatetiPartidaSistema >> finalizarTurnoTrasResultado: resultado indiceTablerito: indiceTablerito [
+	| estadoAntes |
+
+	estadoAntes := resultado at: #estadoAntes.
+
+	vistaPrincipal ifNotNil: [ vistaPrincipal actualizarVista ].
+
+	(resultado at: #juegoTerminado) ifTrue: [
+		self finalizarPartidaPorTablero.
+		^ true ].
+
+	self aplicarPenalizacionSiCapturoTablerito: indiceTablerito estadoAntes: estadoAntes.
+	relojSistema alternarJugador.
+	^ true
 
 ]
 
-{ #category : 'events' }
-SuperTatetiPartidaSistema >> helpPresionado [
-    juegoSistema juegoTerminado ifTrue: [
-        vistaPrincipal ifNotNil: [
-            vistaPrincipal informarJuegoTerminadoEnAyuda ].
-        ^ self
-    ].
-
-    "Toggle de la bandera de ayuda en BotonesSistema."
-    botonesSistema ayudaActiva: (botonesSistema ayudaActiva not).
-
-    "Redibujamos todo según el nuevo estado de la ayuda."
-    vistaPrincipal ifNotNil: [
-        vistaPrincipal actualizarVista ]
+{ #category : 'accessing' }
+SuperTatetiPartidaSistema >> ganadorActual [
+    ^ juegoSistema ganador
 
 ]
 
@@ -287,16 +277,23 @@ SuperTatetiPartidaSistema >> ponerBotonStartEnModoStop [
 
 { #category : 'game_logic' }
 SuperTatetiPartidaSistema >> procesarJugadaEnTablerito: indiceTablerito casilla: indiceCasilla [
-	| estadoAntes |
+	| resultado |
 
 	(self debeRechazarJugada) ifTrue: [ ^ false ].
 
-	estadoAntes := juegoSistema estadoDeTablerito: indiceTablerito.
+	"Una sola llamada al JuegoSistema para todo lo del modelo"
+	resultado := juegoSistema
+		procesarJugadaEnTablerito: indiceTablerito
+		casilla: indiceCasilla.
 
-	(self intentarJugarEnTablerito: indiceTablerito casilla: indiceCasilla)
-		ifFalse: [ ^ false ].
+	(resultado at: #jugadaValida) ifFalse: [
+		vistaPrincipal ifNotNil: [
+			vistaPrincipal informarError: (resultado at: #error) ].
+		^ false ].
 
-	^ self finalizarTurnoTrasJugadaEnTablerito: indiceTablerito estadoAntes: estadoAntes
+	^ self
+		finalizarTurnoTrasResultado: resultado
+		indiceTablerito: indiceTablerito
 
 ]
 
@@ -488,12 +485,6 @@ SuperTatetiPartidaSistema >> startPresionado [
 
     vistaPrincipal ifNotNil: [
         vistaPrincipal iniciarReloj ]
-
-]
-
-{ #category : 'game_logic' }
-SuperTatetiPartidaSistema >> ticRelojes [
-    ^ relojSistema tic
 
 ]
 

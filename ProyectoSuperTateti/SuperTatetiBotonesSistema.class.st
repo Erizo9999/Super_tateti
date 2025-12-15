@@ -45,9 +45,9 @@ SuperTatetiBotonesSistema >> controller [
 
 { #category : 'accessing' }
 SuperTatetiBotonesSistema >> controller: unController [
-    controller := unController.
-    topBarPanel ifNotNil: [
-        topBarPanel controller: unController ]
+	controller := unController.
+	topBarPanel ifNotNil: [
+		topBarPanel controller: self ]
 
 ]
 
@@ -80,6 +80,12 @@ SuperTatetiBotonesSistema >> juegoIniciado: unBooleano [
 
 ]
 
+{ #category : 'accessing' }
+SuperTatetiBotonesSistema >> orquestador [
+	^ controller
+
+]
+
 { #category : 'events' }
 SuperTatetiBotonesSistema >> ponerBotonStartEnModoStart [
     botonStart ifNotNil: [
@@ -96,6 +102,18 @@ SuperTatetiBotonesSistema >> ponerBotonStartEnModoStop [
 
 ]
 
+{ #category : 'events' }
+SuperTatetiBotonesSistema >> resetPresionado [
+	controller ifNotNil: [ controller resetPresionado ]
+
+]
+
+{ #category : 'events' }
+SuperTatetiBotonesSistema >> returnDeshabilitado [
+	controller ifNotNil: [ controller returnDeshabilitado ]
+
+]
+
 { #category : 'accessing' }
 SuperTatetiBotonesSistema >> returnHabilitado [
     ^ returnHabilitado
@@ -108,8 +126,29 @@ SuperTatetiBotonesSistema >> returnHabilitado: unBooleano [
 
 ]
 
+{ #category : 'events' }
+SuperTatetiBotonesSistema >> returnPresionado [
+"Si está deshabilitado, no delega a PartidaSistema: muestra el aviso."
+	returnHabilitado
+		ifTrue: [ controller ifNotNil: [ controller returnPresionado ] ]
+		ifFalse: [ self returnDeshabilitado ]
+
+]
+
+{ #category : 'events' }
+SuperTatetiBotonesSistema >> startPresionado [
+	controller ifNotNil: [ controller startPresionado ]
+
+]
+
 { #category : 'accessing' }
 SuperTatetiBotonesSistema >> topBarPanel [
     ^ topBarPanel
+
+]
+
+{ #category : 'events' }
+SuperTatetiBotonesSistema >> volverAlInicio [
+	controller ifNotNil: [ controller volverAlInicio ]
 
 ]

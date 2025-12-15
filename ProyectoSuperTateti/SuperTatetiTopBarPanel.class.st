@@ -23,61 +23,53 @@ SuperTatetiTopBarPanel >> controller: unController [
 
 { #category : 'building' }
 SuperTatetiTopBarPanel >> crearBotonConLabel: label action: selector [
-    "Crea un botón de la barra superior con tamaño fijo.
-    Los clics van al controller (SuperTatetiBotonesSistema)."
-    ^ SimpleButtonMorph new
-        label: label;
-        extent: 100@40;          "Tamaño fijo para que no cambie al modificar el texto"
-        hResizing: #rigid;
-        vResizing: #rigid;
-        color: Color lightGray;
-        borderWidth: 1;
-        borderColor: Color black;
-        target: controller;      "El controller es el sistema de botones"
-        actionSelector: selector;
-        yourself
+	"Crea un botón de la barra superior con tamaño fijo.
+	Los clics van al controller (BotonesSistema)."
+	^ SimpleButtonMorph new
+		label: label;
+		extent: 100@40;
+		hResizing: #rigid;
+		vResizing: #rigid;
+		color: Color lightGray;
+		borderWidth: 1;
+		borderColor: Color black;
+		target: controller;
+		actionSelector: selector;
+		yourself
+
 ]
 
 { #category : 'building' }
 SuperTatetiTopBarPanel >> crearTopBarPanel [
-    "Crea la barra superior con los botones Leave, Start, Reset y Return."
-    | topPanel botonReturn botonReset botonLeave botonStartLocal accionReturn |
+	"Crea la barra superior con los botones Leave, Start, Reset y Return."
+	| topPanel botonReturn botonReset botonLeave botonStartLocal |
 
-    topPanel := Morph new.
-    topPanel layoutPolicy: TableLayout new.
-    topPanel listDirection: #leftToRight.
-    topPanel hResizing: #shrinkWrap;
-              vResizing: #shrinkWrap;
-              cellInset: 5.
-    topPanel color: Color lightGray.
+	topPanel := Morph new.
+	topPanel layoutPolicy: TableLayout new.
+	topPanel listDirection: #leftToRight.
+	topPanel hResizing: #shrinkWrap;
+		vResizing: #shrinkWrap;
+		cellInset: 5.
+	topPanel color: Color lightGray.
 
-    "Selector de acción para Return según la configuración del controller."
-    accionReturn := (controller returnHabilitado
-        ifTrue: [ #returnPresionado ]
-        ifFalse: [ #returnDeshabilitado ]).
+	"Return siempre llama al mismo selector; la decisión se hace en BotonesSistema."
+	botonReturn := self crearBotonConLabel: 'Return' action: #returnPresionado.
 
-    "Botón Return."
-    botonReturn := self crearBotonConLabel: 'Return' action: accionReturn.
+	botonReset := self crearBotonConLabel: 'Reset' action: #resetPresionado.
 
-    "Botón Reset."
-    botonReset := self crearBotonConLabel: 'Reset' action: #resetPresionado.
+	botonStartLocal := self crearBotonConLabel: 'Start' action: #startPresionado.
+	controller botonStart: botonStartLocal.
 
-    "Botón Start/Stop (guardamos referencia en el controller de botones)."
-    botonStartLocal := self crearBotonConLabel: 'Start' action: #startPresionado.
-    controller botonStart: botonStartLocal.
+	botonLeave := self crearBotonConLabel: 'Leave' action: #volverAlInicio.
 
-    "Botón Leave (vuelve al menú)."
-    botonLeave := self crearBotonConLabel: 'Leave' action: #volverAlInicio.
+	topPanel
+		addMorph: botonLeave;
+		addMorph: botonStartLocal;
+		addMorph: botonReset;
+		addMorph: botonReturn.
 
-    "Orden de los botones en la barra."
-    topPanel
-        addMorph: botonLeave;
-        addMorph: botonStartLocal;
-        addMorph: botonReset;
-        addMorph: botonReturn.
-
-    panel := topPanel.
-    ^ topPanel
+	panel := topPanel.
+	^ topPanel
 
 ]
 

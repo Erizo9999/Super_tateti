@@ -275,12 +275,6 @@ SuperTatetiMorph >> returnHabilitado: unBooleano [
 
 ]
 
-{ #category : 'helpers' }
-SuperTatetiMorph >> ticRelojes [
-    partidaSistema procesarTickRelojes
-
-]
-
 { #category : 'events' }
 SuperTatetiMorph >> volverAlInicio [
     self detenerReloj.

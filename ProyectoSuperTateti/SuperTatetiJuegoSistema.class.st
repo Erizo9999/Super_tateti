@@ -127,6 +127,49 @@ SuperTatetiJuegoSistema >> partidaSistema: unPartidaSistema [
 
 ]
 
+{ #category : 'game_logic' }
+SuperTatetiJuegoSistema >> procesarJugadaEnTablerito: indiceTablerito casilla: indiceCasilla [
+	"El controller real del tablero es JuegoSistema.
+	Este método encapsula TODO lo del modelo para una jugada en 1 sola llamada.
+	Devuelve un Dictionary con:
+	  #jugadaValida -> Boolean
+	  #error -> String (si falla)
+	  #estadoAntes -> (#enJuego/#empate/#x/#o)
+	  #estadoDespues -> idem
+	  #juegoTerminado -> Boolean
+	  #jugadorActual -> (#x/#o) (después de jugar)
+	  #ganador -> (#x/#o/nil)"
+
+	| resultado estadoAntes estadoDespues |
+
+	resultado := Dictionary new.
+
+	estadoAntes := self estadoDeTablerito: indiceTablerito.
+	resultado at: #estadoAntes put: estadoAntes.
+
+	[ juego jugarEnTablerito: indiceTablerito casilla: indiceCasilla ]
+		on: Error
+		do: [ :ex |
+			resultado at: #jugadaValida put: false.
+			resultado at: #error put: ex messageText.
+			resultado at: #estadoDespues put: estadoAntes.
+			resultado at: #juegoTerminado put: juego juegoTerminado.
+			resultado at: #jugadorActual put: juego jugadorActual.
+			resultado at: #ganador put: juego ganador.
+			^ resultado ].
+
+	estadoDespues := self estadoDeTablerito: indiceTablerito.
+
+	resultado at: #jugadaValida put: true.
+	resultado at: #estadoDespues put: estadoDespues.
+	resultado at: #juegoTerminado put: juego juegoTerminado.
+	resultado at: #jugadorActual put: juego jugadorActual.
+	resultado at: #ganador put: juego ganador.
+
+	^ resultado
+
+]
+
 { #category : 'accessing' }
 SuperTatetiJuegoSistema >> reiniciar [
     juego reiniciar
