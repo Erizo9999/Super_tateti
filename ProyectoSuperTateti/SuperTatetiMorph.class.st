@@ -135,9 +135,8 @@ SuperTatetiMorph >> despuesDeJugadaHumano [
 ]
 
 { #category : 'helpers' }
-SuperTatetiMorph >> detenerReloj [
-    partidaSistema detenerReloj
-
+SuperTatetiMorph >> detenerReloj [ 
+	partidaSistema detenerReloj.
 ]
 
 { #category : 'helpers' }

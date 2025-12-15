@@ -3,7 +3,7 @@ Class {
 	#superclass : 'Object',
 	#instVars : [
 		'juego',
-		'tableroPanel',
+		'boardPanel',
 		'partidaSistema'
 	],
 	#category : 'ProyectoSuperTateti',
@@ -12,7 +12,7 @@ Class {
 
 { #category : 'updating' }
 SuperTatetiJuegoSistema >> actualizarVistaConAyuda: unBooleano [
-	tableroPanel actualizarVistaConAyuda: unBooleano
+	boardPanel actualizarVistaConAyuda: unBooleano
 
 ]
 
@@ -36,13 +36,13 @@ SuperTatetiJuegoSistema >> configurarController: unController [
     pero el tablero habla primero con este JuegoSistema."
 
     partidaSistema := unController.
-    tableroPanel controller: self
+    boardPanel controller: self
 
 ]
 
 { #category : 'building' }
 SuperTatetiJuegoSistema >> crearBoardPanel [
-    ^ tableroPanel crearBoardPanel
+    ^ boardPanel crearBoardPanel
 
 ]
 
@@ -82,7 +82,7 @@ SuperTatetiJuegoSistema >> ganador: unSimbolo [
 SuperTatetiJuegoSistema >> initialize [
     super initialize.
     juego := SuperTateti new.
-    tableroPanel := SuperTatetiBoardPanel new.
+    boardPanel := SuperTatetiBoardPanel new.
 
 ]
 

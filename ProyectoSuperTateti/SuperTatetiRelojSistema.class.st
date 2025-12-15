@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'relojTurnos',
 		'procesoReloj',
-		'panel'
+		'relojPanel'
 	],
 	#category : 'ProyectoSuperTateti',
 	#package : 'ProyectoSuperTateti'
@@ -12,7 +12,7 @@ Class {
 
 { #category : 'updating' }
 SuperTatetiRelojSistema >> actualizarTextoTiempo [
-    panel actualizarTextoTiempo
+    relojPanel actualizarTextoTiempo
 
 ]
 
@@ -30,7 +30,7 @@ SuperTatetiRelojSistema >> corriendo [
 
 { #category : 'building' }
 SuperTatetiRelojSistema >> crearPanelTiemposJugadores [
-    ^ panel crearPanelTiemposJugadores
+    ^ relojPanel crearPanelTiemposJugadores
 
 ]
 
@@ -64,20 +64,14 @@ SuperTatetiRelojSistema >> iniciarRelojParaJuego: unJuego conCallback: unBloque 
 SuperTatetiRelojSistema >> initialize [
     super initialize.
     relojTurnos := RelojTurnos new.
-    panel := SuperTatetiRelojPanel new.
-    panel relojTurnos: relojTurnos.
+    relojPanel := SuperTatetiRelojPanel new.
+    relojPanel relojTurnos: relojTurnos.
 
 ]
 
 { #category : 'accessing' }
 SuperTatetiRelojSistema >> jugadorActivo: unSimbolo [
     relojTurnos jugadorActivo: unSimbolo
-
-]
-
-{ #category : 'accessing' }
-SuperTatetiRelojSistema >> panel [
-    ^ panel
 
 ]
 
@@ -90,6 +84,12 @@ SuperTatetiRelojSistema >> penalizarA: unSimbolo segundos: unNumero [
 { #category : 'accessing' }
 SuperTatetiRelojSistema >> relojO [
     ^ relojTurnos relojO
+
+]
+
+{ #category : 'accessing' }
+SuperTatetiRelojSistema >> relojPanel [
+    ^ relojPanel
 
 ]
 
